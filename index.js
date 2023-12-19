@@ -12,7 +12,6 @@ app.listen(port, () => {
    console.log(`Example app listening on port ${port}`)
 })
 
-
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = "mongodb+srv://sirohm55:JUNyantan15243@vms.vbsh1ml.mongodb.net/";
 
@@ -297,7 +296,7 @@ async function searchVisitor(IC){
     console.log(result)
     return result
 }
-
+/*
 //HTTP login method
 app.use(express.json())
 
@@ -312,10 +311,10 @@ app.post('/login', async(req, res) => {   //login
         res.send("...")
     }
 })
-
+*/
 
 //visitor HTTP methods    
-        
+/*        
 app.post('/login/visitor', async(req, res) => {   //login
     res.send(await login(req.body.username,req.body.password))
 })
@@ -425,4 +424,4 @@ app.get('/login/security/logout', (req, res) => {
     else
         console.log ("You had log out")
 })
-   
+*/
