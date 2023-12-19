@@ -296,12 +296,9 @@ async function searchVisitor(IC){
     console.log(result)
     return result
 }
-/*
-//HTTP login method
-app.use(express.json())
 
-app.listen(port, () => {
-  })
+//HTTP login method
+
 
 app.post('/login', async(req, res) => {   //login
     if(l == "false"){
@@ -311,10 +308,10 @@ app.post('/login', async(req, res) => {   //login
         res.send("...")
     }
 })
-*/
+
 
 //visitor HTTP methods    
-/*        
+
 app.post('/login/visitor', async(req, res) => {   //login
     res.send(await login(req.body.username,req.body.password))
 })
@@ -424,4 +421,3 @@ app.get('/login/security/logout', (req, res) => {
     else
         console.log ("You had log out")
 })
-*/
