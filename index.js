@@ -1,8 +1,27 @@
 const express = require('express')
 const app = express()
 const port = process.env.PORT || 3000;
+const vmsapi = require ("./routes/vms");
 
-app.use(express.json())
+
+
+const swaggerUi = require ("swagger-ui-express");
+const swaggerJsdoc = require("swagger-jsdoc");
+const options = {
+    definition: {
+        openapi: "3.0.0",
+        info: {
+            title: "MyVMS API",
+            version: "1.0.0",
+        },
+    },
+    apis: ["./routes/*.js"],
+};
+const swaggerSpec = swaggerJsdoc (options);
+app.use("/api-docs", swaggerUi.serve,swaggerUi.setup(swaggerSpec));
+
+
+app.use(express.json());
 
 app.get('/', (req, res) => {
    res.send('Welcome to visitor managment system')
