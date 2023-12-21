@@ -18,14 +18,9 @@ const options = {
     apis: ["./routes/*.js"],
 };
 const swaggerSpec = swaggerJsdoc (options);
-app.use("/api-docs", swaggerUi.serve,swaggerUi.setup(swaggerSpec));
-
+app.use("", swaggerUi.serve,swaggerUi.setup(swaggerSpec));
 
 app.use(express.json());
-
-app.get('/', (req, res) => {
-   res.send('Welcome to visitor managment system')
-})
 
 app.listen(port, () => {
    console.log(`Example app listening on port ${port}`)
