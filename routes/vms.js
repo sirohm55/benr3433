@@ -41,8 +41,7 @@
  * @swagger
  * /login/security/logout:
  *      get:
- *          description: 
- *              for logout 
+ *          description: for logout 
  *          
  *          response:
  *              200: ok
