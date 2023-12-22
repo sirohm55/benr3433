@@ -18,13 +18,17 @@ const options = {
     apis: ["./routes/*.js"],
 };
 const swaggerSpec = swaggerJsdoc (options);
-app.use("", swaggerUi.serve,swaggerUi.setup(swaggerSpec));
+app.use("/api-docs", swaggerUi.serve,swaggerUi.setup(swaggerSpec));
 
 app.use(express.json());
 
 app.listen(port, () => {
    console.log(`Example app listening on port ${port}`)
 })
+
+app.get('/', (req, res) => {
+    res.redirect("/api-docs");
+ })
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = "mongodb+srv://sirohm55:JUNyantan15243@vms.vbsh1ml.mongodb.net/";
