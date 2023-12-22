@@ -436,6 +436,6 @@ app.get('/login/security/logout', (req, res) => {
         res.send("You had log out")
 })
 
-/*app.get('/', (req, res) => {
+app.get('/', (req, res) => {
     res.redirect("/api-docs");
- })*/
+ })
