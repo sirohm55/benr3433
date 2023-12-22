@@ -36,3 +36,11 @@
  *                                  type: string
  * 
  */
+
+/**
+ * @swagger
+ * /login/security/logout:
+ *      get:
+ *          description: for logout 
+ * 
+ */
