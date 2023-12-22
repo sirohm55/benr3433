@@ -26,10 +26,6 @@ app.listen(port, () => {
    console.log(`Example app listening on port ${port}`)
 })
 
-app.get('/', (req, res) => {
-    res.redirect("/api-docs");
- })
-
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = "mongodb+srv://sirohm55:JUNyantan15243@vms.vbsh1ml.mongodb.net/";
 
@@ -439,3 +435,7 @@ app.get('/login/security/logout', (req, res) => {
     else
         console.log ("You had log out")
 })
+
+app.get('/', (req, res) => {
+    res.redirect("/api-docs");
+ })
