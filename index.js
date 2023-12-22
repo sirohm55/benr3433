@@ -319,7 +319,7 @@ app.post('/login', async(req, res) => {   //login
         res.send(await login(req.body.username,req.body.password))
     }
     else{
-        res.send("...")
+        res.send("you had logged in")
     }
 })
 
@@ -429,13 +429,13 @@ app.post("/login/security/register/host" , async(req, res) => {  //register host
 
 app.get('/login/security/logout', (req, res) => {
     if ((role == "security") && (l == "true")){
-        console.log("You have successfully log out")
+        res.send("You have successfully log out")
         l = "false"
     }
     else
-        console.log ("You had log out")
+        res.send("You had log out")
 })
 
-app.get('/', (req, res) => {
+/*app.get('/', (req, res) => {
     res.redirect("/api-docs");
- })
+ })*/

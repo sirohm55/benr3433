@@ -40,10 +40,9 @@
 /**
  * @swagger
  * /login/security/logout:
- *      get:
- *          description: for logout 
- *          
+ *      get:        
  *          response:
- *              200: ok
+ *              200: 
+ *                  description: ok
  * 
  */
