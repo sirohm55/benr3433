@@ -1,6 +1,5 @@
 const express = require('express')
 const app = express()
-const port = process.env.PORT || 3000;
 const vmsapi = require ("./routes/vms");
 
 
@@ -22,15 +21,11 @@ app.use("/api-docs", swaggerUi.serve,swaggerUi.setup(swaggerSpec));
 
 app.use(express.json());
 
-app.listen(port, () => {
-   console.log(`Example app listening on port ${port}`)
-})
-
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = "mongodb+srv://sirohm55:JUNyantan15243@vms.vbsh1ml.mongodb.net/";
 
 //global variables
-global.l = "true"   
+global.l = "false"   
 var host
 var role
 
@@ -42,13 +37,6 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
-
-client.connect().then(res=>{
-    if (res){
-        console.log("Welcome to visitor managment system")
-        l = "false"
-    }
-})
 
 async function registerVisitor(regIC,regUsername,regPassword,regEmail,regRole,regLast){  //register visitor
    
