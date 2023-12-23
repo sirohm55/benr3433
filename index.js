@@ -39,9 +39,9 @@ const client = new MongoClient(uri, {
 
 
 //global variables
-global.l = "false"   
-var host
-var role
+var l = "false";   
+var host;
+var role;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 /**
@@ -379,10 +379,10 @@ async function searchVisitor(IC){
 
 app.post('/login', async(req, res) => {   //login
     if(l == "false"){
-        res.send(await login(req.body.username,req.body.password))
+        res.status(200).send(await login(req.body.username,req.body.password))
     }
     else{
-        res.send("you had logged in")
+        res.status(200).send("you had logged in")
     }
 })
 
