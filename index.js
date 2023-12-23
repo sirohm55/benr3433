@@ -39,11 +39,10 @@ const client = new MongoClient(uri, {
 
 
 //global variables
-var l = "false";   
+var l = "true";   
 var host;
 var role;
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 /**
  * @swagger
  * components:
@@ -55,7 +54,6 @@ var role;
  *                      type: string
  *                  username:
  *                      type: string
- * 
  */
 
 /**
@@ -80,9 +78,7 @@ var role;
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: '#components/schemas/User'
- * 
- *     
+ *                              $ref: '#components/schemas/User'   
  */
 
 
@@ -100,7 +96,6 @@ var role;
  *                          properties:
  *                              password:
  *                                  type: string
- * 
  */
 
 /**
@@ -110,8 +105,8 @@ var role;
  *          response:
  *              200: 
  *                  description: ok
- * 
  */
+
 async function login(Username,Password){  //user and host login
 
     const option={projection:{password:0}}  //pipeline to project usernamne and email
