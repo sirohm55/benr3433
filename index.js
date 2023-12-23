@@ -34,6 +34,13 @@ global.l = "false"
 var host
 var role
 
+client.connect().then(res=>{
+    if (res){
+        console.log("Welcome to visitor managment system")
+        l = "false"
+    }
+})
+
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
