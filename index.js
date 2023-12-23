@@ -15,7 +15,7 @@ const options = {
             version: "1.0.0",
         },
     },
-    apis: ["./routes/*.js"],
+    apis: ["./index.js"],
 };
 const swaggerSpec = swaggerJsdoc (options);
 app.use("/api-docs", swaggerUi.serve,swaggerUi.setup(swaggerSpec));
@@ -38,20 +38,80 @@ const client = new MongoClient(uri, {
     }
   });
 
-client.connect().then(res=>{
-    if (res){
-        console.log("Welcome to visitor managment system")
-        l = "false"
-    }
-})
-
 //global variables
 global.l = "false"   
 var host
 var role
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
+/**
+ * @swagger
+ * components:
+ *      schemas:
+ *          User:
+ *              type: object
+ *              properties:
+ *                  _id:
+ *                      type: string
+ *                  username:
+ *                      type: string
+ * 
+ */
 
+/**
+ * @swagger
+ * /login:
+ *      post:
+ *          description: User Login
+ *          requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: object
+ *                          properties:
+ *                              username:
+ *                                  type: string
+ *                              password:
+ *                                  type: string
+ *          responses:
+ *              200:
+ *                  description: Successful login / Unsuccessful login
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              $ref: '#components/schemas/User'
+ * 
+ *     
+ */
+
+
+
+/**
+ * @swagger
+ * /login/visitor/updatePassword:
+ *      post:
+ *          description: password change
+ *          requestBody:
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: object
+ *                          properties:
+ *                              password:
+ *                                  type: string
+ * 
+ */
+
+/**
+ * @swagger
+ * /login/security/logout:
+ *      get:        
+ *          response:
+ *              200: 
+ *                  description: ok
+ * 
+ */
 
 async function registerVisitor(regIC,regUsername,regPassword,regEmail,regRole,regLast){  //register visitor
    
