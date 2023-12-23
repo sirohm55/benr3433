@@ -38,11 +38,6 @@ const client = new MongoClient(uri, {
     }
   });
 
-app.get('/', async(req, res) => {   //login
-    
-    res.redirect("/api-docs")
-    
-})
 
 //global variables
 global.l = "false"   
@@ -506,5 +501,5 @@ app.get('/login/security/logout', (req, res) => {
 })
 
 app.get('/', (req, res) => {
-    res.send ("welcome to management system");
+    res.redirect ("/api-docs");
  })
