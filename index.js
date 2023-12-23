@@ -40,7 +40,7 @@ const client = new MongoClient(uri, {
 
 app.get('/', async(req, res) => {   //login
     
-    res.redirect("/login")
+    res.redirect("/api-docs")
     
 })
 
