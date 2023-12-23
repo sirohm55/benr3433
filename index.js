@@ -184,7 +184,8 @@ async function login(Username,Password){  //user and host login
 //HTTP login method
 app.post('/login', async(req, res) => {   //login
     if(l == "false"){
-        res.status(200).send(await login(req.body.username,req.body.password))
+        res.status(200).send("await login(req.body.username,req.body.password")
+        l = "true"
     }
     else{
         res.status(200).send("you had logged in")
@@ -192,7 +193,7 @@ app.post('/login', async(req, res) => {   //login
 })
 
 app.get('/login/security/logout', (req, res) => {
-    if ((role == "security") && (l == "true")){
+    if ((l == "true")){
         res.send("You have successfully log out")
         l = "false"
     }
