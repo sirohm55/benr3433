@@ -38,6 +38,13 @@ const client = new MongoClient(uri, {
     }
   });
 
+client.connect().then(res=>{
+    if (res){
+        console.log("Welcome to visitor managment system")
+        l = "false"
+    }
+})
+
 //global variables
 global.l = "false"   
 var host
