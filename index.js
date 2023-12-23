@@ -1,9 +1,10 @@
 const express = require('express')
 const app = express()
-const vmsapi = require ("./routes/vms");
 const port = process.env.PORT || 3000;
 
+app.use(express.json());
 
+app.use(express.urlencoded({ extended: false }));
 
 const swaggerUi = require ("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
@@ -20,12 +21,10 @@ const options = {
 const swaggerSpec = swaggerJsdoc (options);
 app.use("/api-docs", swaggerUi.serve,swaggerUi.setup(swaggerSpec));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
  })
+
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = "mongodb+srv://sirohm55:JUNyantan15243@vms.vbsh1ml.mongodb.net/";
