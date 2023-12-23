@@ -37,7 +37,11 @@ const client = new MongoClient(uri, {
     }
   });
 
+async function main() {
+	await client.connect();
+}
 
+main();
 //global variables
 var l = "false";   
 var host;
