@@ -29,26 +29,21 @@ app.listen(port, () => {
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = "mongodb+srv://sirohm55:JUNyantan15243@vms.vbsh1ml.mongodb.net/";
 
+const client = new MongoClient(uri, {
+    serverApi: {
+      version: ServerApiVersion.v1,
+      strict: true,
+      deprecationErrors: true,
+    }
+  });
+  
 //global variables
 global.l = "false"   
 var host
 var role
 
-client.connect().then(res=>{
-    if (res){
-        console.log("Welcome to visitor managment system")
-        l = "false"
-    }
-})
-
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
-});
+
 
 async function registerVisitor(regIC,regUsername,regPassword,regEmail,regRole,regLast){  //register visitor
    
