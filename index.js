@@ -38,6 +38,12 @@ const client = new MongoClient(uri, {
     }
   });
 
+app.get('/login', async(req, res) => {   //login
+    
+    res.redirect("/login")
+    
+})
+
 //global variables
 global.l = "false"   
 var host
