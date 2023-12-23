@@ -21,6 +21,7 @@ const swaggerSpec = swaggerJsdoc (options);
 app.use("/api-docs", swaggerUi.serve,swaggerUi.setup(swaggerSpec));
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
@@ -36,7 +37,7 @@ const client = new MongoClient(uri, {
       deprecationErrors: true,
     }
   });
-  
+
 //global variables
 global.l = "false"   
 var host

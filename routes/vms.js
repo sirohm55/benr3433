@@ -1,3 +1,18 @@
+
+/**
+ * @swagger
+ * components:
+ *      schemas:
+ *          User:
+ *              type: object
+ *              properties:
+ *                  _id:
+ *                      type: string
+ *                  username:
+ *                      type: string
+ * 
+ */
+
 /**
  * @swagger
  * /login:
@@ -17,9 +32,15 @@
  *          responses:
  *              200:
  *                  description: Successful login / Unsuccessful login
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              $ref: '#components/schemas/User'
  * 
  *     
  */
+
+
 
 /**
  * @swagger
