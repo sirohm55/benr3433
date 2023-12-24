@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-//app.use(cookieParser());
+app.use(cookieParser());
 
 
 const swaggerUi = require ("swagger-ui-express");
@@ -144,7 +144,7 @@ app.post('/login', async(req, res) => {   //login
     }
 })
 
-app.get('/login/security/logout', (req, res) => {
+app.get('/login/security/logout', verifyToken, (req, res) => {
         console.log ("logout")
         res.clearCookie("sessid").send("You had log out")
 })
@@ -154,3 +154,22 @@ app.get('/', (req, res) => {
     res.redirect ("/api-docs");
  })
 
+/*function verifyToken (req, res, next){
+    const token = req.cookies.sessid;
+    if (!token){
+        console.log("no token")
+        return next()
+    }
+        
+    const user = jwt.verify (token, 'hello_goh', (err,user) => {
+        if (err){
+            console.log ("Invalid token")
+            next()
+        }
+        console.log ("checkpoint")
+        req.user = user;
+        role = user.role;
+        console.log(user)
+        return next()
+    });
+}*/
