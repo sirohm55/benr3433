@@ -2,9 +2,9 @@
   "name": "benr3433",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "vms_tan.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node vms_tan.js"
   },
   "author": "",
   "license": "ISC",

@@ -16,7 +16,7 @@ const options = {
             version: "1.0.0",
         },
     },
-    apis: ["./index.js"],
+    apis: ["./vms_tan.js"],
 };
 const swaggerSpec = swaggerJsdoc (options);
 app.use("/api-docs", swaggerUi.serve,swaggerUi.setup(swaggerSpec));
