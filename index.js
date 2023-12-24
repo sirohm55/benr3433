@@ -1,12 +1,12 @@
 const express = require('express')
-const cookieParser = require("cookie-parser");
 const app = express()
 const port = process.env.PORT || 3000;
-const jwt = require("jsonwebtoken");
+//const cookieParser = require("cookie-parser");
+//const jwt = require("jsonwebtoken");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+//app.use(cookieParser());
 
 
 const swaggerUi = require ("swagger-ui-express");
@@ -19,7 +19,7 @@ const options = {
             version: "1.0.0",
         },
     },
-    apis: ["./index.js"],
+    apis: ["./routes/*.js"],
 };
 const swaggerSpec = swaggerJsdoc (options);
 app.use("/api-docs", swaggerUi.serve,swaggerUi.setup(swaggerSpec));
@@ -146,7 +146,7 @@ app.post('/login', async(req, res) => {   //login
 
 app.get('/login/security/logout', (req, res) => {
         console.log ("logout")
-        res.clearCookie("sessid").send("You had log out")
+        //res.clearCookie("sessid").send("You had log out")
 })
 
 app.get('/', (req, res) => {
