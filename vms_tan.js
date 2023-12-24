@@ -39,7 +39,7 @@ const client = new MongoClient(uri, {
 
 
 //global variables
-var l = "false"   
+var l = "false";   
 var host;
 var role;
 
