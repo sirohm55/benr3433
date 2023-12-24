@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-//app.use(cookieParser());
+app.use(cookieParser());
 
 
 const swaggerUi = require ("swagger-ui-express");
@@ -46,12 +46,12 @@ var jwt_token;
 var host;
 var role;
 
-
+/*
 function create_jwt (payload){
     jwt_token = jwt.sign(payload, 'hello_goh', { expiresIn: "10m" });
     return 
 }
-
+*/
 
 async function login(Username,Password){  //user and host login
 
@@ -79,7 +79,7 @@ async function login(Username,Password){  //user and host login
         console.log("Successfully Login")
         l = "true"
         role = "visitor"
-        create_jwt ({username: result.username, email: result.email, role: result.role})
+        //create_jwt ({username: result.username, email: result.email, role: result.role})
         return result
         //details(result.role)
     }
@@ -99,7 +99,7 @@ async function login(Username,Password){  //user and host login
             console.log("Successfully Login")
             l = "true"
             role = "host"
-            create_jwt ({username: result.username, email: result.email, role: result.role})
+            //create_jwt ({username: result.username, email: result.email, role: result.role})
             return result
             //details(result.role)
             
@@ -119,7 +119,7 @@ async function login(Username,Password){  //user and host login
                 console.log("Successfully Login")
                 l = "true"
                 role = "security"
-                create_jwt ({username: result.username, email: result.email, role: result.role})
+                //create_jwt ({username: result.username, email: result.email, role: result.role})
                 return result
                 //details(result.role)
                 
@@ -134,9 +134,9 @@ async function login(Username,Password){  //user and host login
 app.post('/login', async(req, res) => {   //login
     if(l == "false"){
         let answer = await login(req.body.username,req.body.password);
-        res.cookie("sessid", jwt_token, {
+        /*res.cookie("sessid", jwt_token, {
             httpOnly: true,
-        });
+        });*/
         res.status(200).send(answer)
     }
     else{
