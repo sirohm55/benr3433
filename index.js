@@ -294,7 +294,7 @@ async function updateVisitorPass(regPassword){  //change only when password is d
         return data
     }
     else
-        return "Same password cannot be applied"
+        return "Same password cannot be applied";
 }        
 
 async function updateHostPass(regPassword){
