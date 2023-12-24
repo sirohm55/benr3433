@@ -39,9 +39,10 @@ const client = new MongoClient(uri, {
 
 async function main() {
 	await client.connect();
+    console.log ("database connected")
 }
 
-main();
+
 //global variables
 var l = "false";   
 var host;
@@ -112,7 +113,7 @@ var role;
  */
 
 async function login(Username,Password){  //user and host login
-
+    main();
     const option={projection:{password:0}}  //pipeline to project usernamne and email
 
     const result = await client.db("user").collection("visitor").findOne({  
