@@ -1,10 +1,13 @@
 const express = require('express')
+const cookieParser = require("cookie-parser");
 const app = express()
 const port = process.env.PORT || 3000;
+const jwt = require("jsonwebtoken");
 
 app.use(express.json());
-
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+
 
 const swaggerUi = require ("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
@@ -37,14 +40,9 @@ const client = new MongoClient(uri, {
     }
   });
 
-async function main() {
-	await client.connect();
-    console.log ("database connected")
-}
-
-
 //global variables
-var l = "false";   
+var l = "false";
+var jwt_token;   
 var host;
 var role;
 
@@ -86,8 +84,6 @@ var role;
  *                              $ref: '#components/schemas/User'   
  */
 
-
-
 /**
  * @swagger
  * /login/visitor/updatePassword:
@@ -106,14 +102,23 @@ var role;
 /**
  * @swagger
  * /login/security/logout:
- *      get:        
+ *      get:    
+ *          description: logout   
+ *  
  *          response:
  *              200: 
  *                  description: ok
  */
 
+function create_jwt (payload){
+    jwt_token = jwt.sign(payload, 'hello_goh', { expiresIn: "10m" });
+    return 
+}
+
+
+
 async function login(Username,Password){  //user and host login
-    main();
+
     const option={projection:{password:0}}  //pipeline to project usernamne and email
 
     const result = await client.db("user").collection("visitor").findOne({  
@@ -138,6 +143,7 @@ async function login(Username,Password){  //user and host login
         console.log("Successfully Login")
         l = "true"
         role = "visitor"
+        create_jwt ({username: result.username, email: result.email, role: result.role})
         return result
         //details(result.role)
     }
@@ -157,6 +163,7 @@ async function login(Username,Password){  //user and host login
             console.log("Successfully Login")
             l = "true"
             role = "host"
+            create_jwt ({username: result.username, email: result.email, role: result.role})
             return result
             //details(result.role)
             
@@ -176,6 +183,7 @@ async function login(Username,Password){  //user and host login
                 console.log("Successfully Login")
                 l = "true"
                 role = "security"
+                create_jwt ({username: result.username, email: result.email, role: result.role})
                 return result
                 //details(result.role)
                 
@@ -190,6 +198,9 @@ async function login(Username,Password){  //user and host login
 app.post('/login', async(req, res) => {   //login
     if(l == "false"){
         let answer = await login(req.body.username,req.body.password);
+        res.cookie("sessid", jwt_token, {
+            httpOnly: true,
+        });
         res.status(200).send(answer)
     }
     else{
@@ -197,15 +208,32 @@ app.post('/login', async(req, res) => {   //login
     }
 })
 
-app.get('/login/security/logout', (req, res) => {
-    if ((role == "security") && (l == "true")){
-        res.send("You have successfully log out")
-        l = "false"
-    }
-    else
-        res.send("You had log out")
+app.get('/login/security/logout',verifyToken, (req, res) => {
+        console.log ("logout")
+        res.clearCookie("sessid").send("You had log out")
 })
 
 app.get('/', (req, res) => {
+    console.log("check2")
     res.redirect ("/api-docs");
  })
+
+function verifyToken (req, res, next){
+    const token = req.cookies.sessid;
+    if (!token){
+        console.log("no token")
+        return next()
+    }
+        
+    const user = jwt.verify (token, 'hello_goh', (err,user) => {
+        if (err){
+            console.log ("Invalid token")
+            next()
+        }
+        console.log ("checkpoint")
+        req.user = user;
+        role = user.role;
+        console.log(user)
+        return next()
+    });
+}
