@@ -144,7 +144,7 @@ app.post('/login', async(req, res) => {   //login
     }
 })
 
-app.get('/login/security/logout',verifyToken, (req, res) => {
+app.get('/login/security/logout', (req, res) => {
         console.log ("logout")
         res.clearCookie("sessid").send("You had log out")
 })
@@ -154,7 +154,7 @@ app.get('/', (req, res) => {
     res.redirect ("/api-docs");
  })
 
-function verifyToken (req, res, next){
+/*function verifyToken (req, res, next){
     const token = req.cookies.sessid;
     if (!token){
         console.log("no token")
@@ -172,4 +172,4 @@ function verifyToken (req, res, next){
         console.log(user)
         return next()
     });
-}
+}*/
