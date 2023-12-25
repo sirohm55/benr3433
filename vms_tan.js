@@ -132,11 +132,11 @@ async function registerUser (regIC,regUsername,regPassword,regEmail,Role){
     
     else {
         if( await client.db("user").collection(Role).findOne({username: regUsername})){
-            return "Your Username already exist. Please try to login"
+            return "Your username already exist. Please use other username"
         }
 
         else if(await client.db("user").collection(Role).findOne({email: regEmail})){
-            return "Your email already exist. Please try to login"
+            return "Your email already exist. Please use other email"
         }
 
         else{
@@ -300,7 +300,7 @@ app.get ('/login/security/access', verifyToken, async(req, res) => {
 
 app.get('/login/logout', (req, res) => {
         console.log ("logout")
-        res.clearCookie("sessid").send("You had log out")
+        res.clearCookie("sessid").send("You have log out")
 })
 
 app.get('/', (req, res) => {
