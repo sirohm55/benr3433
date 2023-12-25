@@ -244,6 +244,7 @@ app.post('/login',verifyToken, async(req, res) => {   //login
     else{
         res.status(200).send("you had logged in")
     }
+    state = 0
 })
 
 app.get('/login/user/display', async(req, res) => {
