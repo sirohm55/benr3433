@@ -72,14 +72,14 @@
  * @swagger
  * tags:
  *      name: Host
- *      description: API for host
+ *      description: API for host (user)
  */
 
 /**
  * @swagger
  * tags:
  *      name: Security
- *      description: API for security
+ *      description: API for security (administrator)
  */
 
 /**
@@ -109,11 +109,7 @@
 *                                
 *          responses:
 *              200:
-*                  description: display registered visitors
-*                  content:
-*                      application/json:
-*                          schema:
-*                              $ref: '#components/schemas/visitor_display'
+*                  description: register successfully/ register unsuccessful
 * 
 *     
 */

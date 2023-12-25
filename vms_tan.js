@@ -49,7 +49,7 @@ var role;
 
 
 function create_jwt (payload){
-    jwt_token = jwt.sign(payload, 'hello_goh', { expiresIn: "10m" });
+    jwt_token = jwt.sign(payload, 'hello_goh', {expiresIn: "10m"});
     return 
 }
 
@@ -69,7 +69,7 @@ async function login(Username,Password){  //user and host login
         console.log(result)
         console.log("Successfully Login")
         create_jwt ({id: result._id, role: result.role})
-        return result.username + "Successfully Login"
+        return result.username + " Successfully Login"
         //details(result.role)
     }
     else {
@@ -87,7 +87,7 @@ async function login(Username,Password){  //user and host login
             console.log(result)
             console.log("Successfully Login")
             create_jwt ({id: result._id, role: result.role})
-            return result.username + "Successfully Login"
+            return result.username + " Successfully Login"
             //details(result.role)
             
         }
@@ -105,7 +105,7 @@ async function login(Username,Password){  //user and host login
                 console.log(result)
                 console.log("Successfully Login")
                 create_jwt ({id: result._id, role: result.role})
-                return result.username + "Successfully Login"
+                return result.username + " Successfully Login"
                 //details(result.role)
                 
             }
@@ -249,7 +249,7 @@ app.get('/login/user/display', async(req, res) => {
         else
             res.send ("you are not a host")
     else
-        res.send ("you have no login yet")
+        res.send ("you have not login yet")
 
 })
 
@@ -267,27 +267,27 @@ app.post("/register" , async (req, res) => {  //register visitor
 app.post ('/login/user/issue', verifyToken, async(req, res) => {
     if (token_state == 1 )
         if (role == "host")
-            if (id.length == 24)
+            if (req.body.visitor_id.length == 24)
                 res.send(await issue_pass (req.body.visitor_id))
             else
                 res.send("Invalid visitor id")
         else
             res.send ("you are not a host")
     else
-        res.send ("you have no login yet")
+        res.send ("you have not login yet")
 })
 
 app.post ('/login/visitor/pass', verifyToken, async(req, res) => {
     if (token_state == 1 )
         if (role == "visitor")
-            if (id.length == 24)
+            if (req.body.host_id.length == 24)
                 res.send(await retrieve_pass (req.body.host_id))
             else
                 res.send("Invalid host id")
         else
             res.send ("you are not a visitor")
     else
-        res.send ("you have no login yet")
+        res.send ("you have not login yet")
 
 })
 
@@ -295,7 +295,7 @@ app.get ('/login/security/access', verifyToken, async(req, res) => {
     if ((token_state == 1) && (role == "security"))
         res.send(await view_database ())
     else
-        res.send ("you have no login yet")
+        res.send ("you have not login yet")
 })
 
 app.get('/login/logout', (req, res) => {
