@@ -29,7 +29,7 @@ app.listen(port, () => {
  })
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = "mongodb+srv://sirohm55:JUNyantan15243@vms.vbsh1ml.mongodb.net/?retryWrites=true&w=majority";
 
 const client = new MongoClient(uri, {
@@ -42,8 +42,9 @@ const client = new MongoClient(uri, {
 
 //global variables
 var l = "false";
-var jwt_token;   
-var host;
+var jwt_token;  
+var token_state 
+var id;
 var role;
 
 
@@ -51,7 +52,6 @@ function create_jwt (payload){
     jwt_token = jwt.sign(payload, 'hello_goh', { expiresIn: "10m" });
     return 
 }
-
 
 async function login(Username,Password){  //user and host login
 
@@ -79,7 +79,7 @@ async function login(Username,Password){  //user and host login
         console.log("Successfully Login")
         l = "true"
         role = "visitor"
-        create_jwt ({username: result.username, email: result.email, role: result.role})
+        create_jwt ({id: result._id, role: result.role})
         return result
         //details(result.role)
     }
@@ -99,7 +99,7 @@ async function login(Username,Password){  //user and host login
             console.log("Successfully Login")
             l = "true"
             role = "host"
-            create_jwt ({username: result.username, email: result.email, role: result.role})
+            create_jwt ({id: result._id, role: result.role})
             return result
             //details(result.role)
             
@@ -119,7 +119,7 @@ async function login(Username,Password){  //user and host login
                 console.log("Successfully Login")
                 l = "true"
                 role = "security"
-                create_jwt ({username: result.username, email: result.email, role: result.role})
+                create_jwt ({id: result._id, role: result.role})
                 return result
                 //details(result.role)
                 
@@ -130,9 +130,79 @@ async function login(Username,Password){  //user and host login
         } 
     }
 }
+
+async function visitor_display (){
+    const option={projection:{password:0,ic:0}}
+    const result = await client.db("user").collection("visitor").find ({},option).toArray (function(err, result){
+        if (err) throw err;
+    })
+    console.log (result)
+    return result
+}
+
+async function registerUser (regIC,regUsername,regPassword,regEmail,Role){
+    if (await client.db("user").collection(Role).findOne({_id : regIC})){
+        return "Your IC has already registered in the system"
+    }
+    
+    else {
+        if( await client.db("user").collection(Role).findOne({username: regUsername})){
+            return "Your Username already exist. Please try to login"
+        }
+
+        else if(await client.db("user").collection(Role).findOne({email: regEmail})){
+            return "Your email already exist. Please try to login"
+        }
+
+        else{
+            await client.db("user").collection(Role).insertOne({
+                "ic":regIC,
+                "username":regUsername,
+                "password":regPassword,
+                "email":regEmail,
+                "role":Role
+            })
+            let data = regUsername + " is successfully register"
+            return data
+        }
+    }
+}
+
+async function issue_pass (issue_num){
+
+    var mongo = require ("mongodb")
+    const o_id_visitor = new mongo.ObjectId(issue_num)
+    const o_id_host = new mongo.ObjectId(id)
+
+    if (!(await client.db("user").collection("visitor").findOne({_id : o_id_visitor}))){
+        return "Invalid visitor id"
+    }
+    else {
+        if(await client.db("user").collection("host").findOne({_id: o_id_host})){
+                let visitor_data = await client.db("user").collection("visitor").findOne({_id : o_id_visitor})
+                let host_data = await client.db("user").collection("host").findOne({_id : o_id_host})
+                if(await client.db("user").collection("host").findOne({_id: o_id_host, "visitor._id": o_id_visitor,"visitor.name": visitor_data.username}))
+                    return "the visitor pass you issued has already in the list"
+                await client.db("user").collection("host").updateOne({
+                    _id:{$eq:o_id_host}
+                },{$push:{visitor:{_id: o_id_visitor, name: visitor_data.username}}},{upsert:true})
+                
+                await client.db("user").collection("visitor").updateOne({
+                    _id:{$eq:o_id_visitor}
+                },{$push:{host:{_id: o_id_host, name: host_data.username}}})
+                console.log("The visitor is added successfully")
+                return "The visitor is added successfully"
+                
+            }
+        else
+            return "you have not login"
+
+        }
+}
+
 //HTTP login method
-app.post('/login', async(req, res) => {   //login
-    if(l == "false"){
+app.post('/login',verifyToken, async(req, res) => {   //login
+    if(token_state == 0){
         let answer = await login(req.body.username,req.body.password);
         res.cookie("sessid", jwt_token, {
             httpOnly: true,
@@ -144,6 +214,28 @@ app.post('/login', async(req, res) => {   //login
     }
 })
 
+app.get('/login/user/display', async(req, res) => {
+    res.send (await visitor_display ())
+})
+
+app.post("/register" , async (req, res) => {  //register visitor
+    if ((req.body.role == "user") || (req.body.role == "visitor"))
+        if (req.body.ic.length != 14)
+            res.send ("ic number invalid")
+        else
+            res.send(await registerUser(req.body.ic, req.body.username, req.body.password, req.body.email, req.body.role))
+    else
+        res.send("role must be user or visitor")
+
+})
+
+app.post ('/login/user/issue', verifyToken, async(req, res) => {
+    if (token_state == 1)
+        res.send(await issue_pass (req.body.visitor_id))
+    else
+        res.send ("you have no login yet")
+})
+
 app.get('/login/security/logout', (req, res) => {
         console.log ("logout")
         res.clearCookie("sessid").send("You had log out")
@@ -153,4 +245,28 @@ app.get('/', (req, res) => {
     console.log("check2")
     res.redirect ("/api-docs");
  })
+
+function verifyToken (req, res, next){
+    const token = req.cookies.sessid;
+    if (!token){
+        console.log("no token")
+        token_state = 0;
+        return next()
+    }
+        
+    const user = jwt.verify (token, 'hello_goh', (err,user) => {
+        if (err){
+            console.log ("Invalid token")
+            token_state = 0;
+            return next()
+        }
+        console.log ("checkpoint")
+        token_state = 1;
+        req.user = user;
+        role = user.role;
+        id = user.id
+        console.log(role, id)
+        return next()
+    });
+}
 
