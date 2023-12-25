@@ -64,23 +64,12 @@ async function login(Username,Password){  //user and host login
             ]
     },option)
 
-    await client.db("user").collection("visitor").updateOne({  
-        username:Username
-    },
-    {
-        $currentDate: {
-        "lastCheckinTime": true
-     },
-    })
-
     if(result){
         visitor = result.username
         console.log(result)
         console.log("Successfully Login")
-        l = "true"
-        role = "visitor"
         create_jwt ({id: result._id, role: result.role})
-        return result
+        return result.username + "Successfully Login"
         //details(result.role)
     }
     else {
@@ -97,10 +86,8 @@ async function login(Username,Password){  //user and host login
             host = result.username
             console.log(result)
             console.log("Successfully Login")
-            l = "true"
-            role = "host"
             create_jwt ({id: result._id, role: result.role})
-            return result
+            return result.username + "Successfully Login"
             //details(result.role)
             
         }
@@ -117,10 +104,8 @@ async function login(Username,Password){  //user and host login
             if(result){
                 console.log(result)
                 console.log("Successfully Login")
-                l = "true"
-                role = "security"
                 create_jwt ({id: result._id, role: result.role})
-                return result
+                return result.username + "Successfully Login"
                 //details(result.role)
                 
             }
@@ -200,6 +185,49 @@ async function issue_pass (issue_num){
         }
 }
 
+async function retrieve_pass (retrieve_num){
+
+    var mongo = require ("mongodb")
+    const o_id_visitor = new mongo.ObjectId(id)
+    const o_id_host = new mongo.ObjectId(retrieve_num)
+
+    if(!(await client.db("user").collection("host").findOne({_id: o_id_host})))
+        return "Invalid host id number"
+
+    let visitor_data = await client.db("user").collection("visitor").findOne({_id : o_id_visitor})
+    let host_data = await client.db("user").collection("host").findOne({_id : o_id_host})
+
+    if(!(await client.db("user").collection("host").findOne({_id: o_id_host, "visitor._id": o_id_visitor,"visitor.name": visitor_data.username})))
+        return "host does not issue pass to " + visitor_data.username
+
+    await client.db("user").collection("host").updateOne({
+        _id: o_id_host
+    },{$pull:{visitor:{name:visitor_data.username},visitor:{_id: o_id_visitor}}},{upsert:true})
+
+    
+    await client.db("user").collection("visitor").updateOne({
+        _id: o_id_visitor
+    },{$pull:{host:{name:host_data.username,_id: o_id_host}}},{upsert:true})
+
+    console.log("Visitor",visitor_data.username,"is successfully remove")
+    return "Visitor "+visitor_data.username+" is successfully retrieve the pass"
+
+}
+
+async function view_database (){
+    
+    const result_visitor = await client.db("user").collection("visitor").find ({}).toArray (function(err, result){
+        if (err) throw err;
+    })
+
+    const result_host = await client.db("user").collection("host").find ({}).toArray (function(err, result){
+        if (err) throw err;
+    })
+
+    console.log (result_visitor.concat(result_host))
+    return result_visitor.concat(result_host)
+}
+
 //HTTP login method
 app.post('/login',verifyToken, async(req, res) => {   //login
     if(token_state == 0){
@@ -215,7 +243,14 @@ app.post('/login',verifyToken, async(req, res) => {   //login
 })
 
 app.get('/login/user/display', async(req, res) => {
-    res.send (await visitor_display ())
+    if (token_state == 1 )
+        if (role == "host")
+            res.send (await visitor_display ())
+        else
+            res.send ("you are not a host")
+    else
+        res.send ("you have no login yet")
+
 })
 
 app.post("/register" , async (req, res) => {  //register visitor
@@ -230,13 +265,40 @@ app.post("/register" , async (req, res) => {  //register visitor
 })
 
 app.post ('/login/user/issue', verifyToken, async(req, res) => {
-    if (token_state == 1)
-        res.send(await issue_pass (req.body.visitor_id))
+    if (token_state == 1 )
+        if (role == "host")
+            if (id.length == 24)
+                res.send(await issue_pass (req.body.visitor_id))
+            else
+                res.send("Invalid visitor id")
+        else
+            res.send ("you are not a host")
     else
         res.send ("you have no login yet")
 })
 
-app.get('/login/security/logout', (req, res) => {
+app.post ('/login/visitor/pass', verifyToken, async(req, res) => {
+    if (token_state == 1 )
+        if (role == "visitor")
+            if (id.length == 24)
+                res.send(await retrieve_pass (req.body.host_id))
+            else
+                res.send("Invalid host id")
+        else
+            res.send ("you are not a visitor")
+    else
+        res.send ("you have no login yet")
+
+})
+
+app.get ('/login/security/access', verifyToken, async(req, res) => {
+    if ((token_state == 1) && (role == "security"))
+        res.send(await view_database ())
+    else
+        res.send ("you have no login yet")
+})
+
+app.get('/login/logout', (req, res) => {
         console.log ("logout")
         res.clearCookie("sessid").send("You had log out")
 })

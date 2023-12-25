@@ -105,7 +105,7 @@
  * @swagger
  * /login/user/display:
  *      get:
- *          summary: All register vistor display
+ *          summary: All register visitors display
  *          responses:
  *              '200':
  *                  describe:   list of visitors
@@ -115,7 +115,47 @@
 
 /**
  * @swagger
- * /login/security/logout:
+ * /login/visitor/pass:
+ *      post:
+ *          description: Retrieve visitor pass
+ *          requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: object
+ *                          properties:
+ *                              host_id:
+ *                                  type: string
+ *                            
+ *          responses:
+ *              200:
+ *                  description: Successful issue / Unsuccessful issue
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              $ref: '#components/schemas/User'
+ * 
+ *     
+ */
+
+/**
+ * @swagger
+ * /login/security/access:
+ *      get:
+ *          summary: All register visitors & users display
+ *          responses:
+ *              '200':
+ *                  describe:   list of visitors & users
+ *          
+ * 
+ */
+
+
+
+/**
+ * @swagger
+ * /login/logout:
  *      get:    
  *          summary: logout   
  *          responses:
