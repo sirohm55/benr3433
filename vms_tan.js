@@ -46,6 +46,7 @@ var jwt_token;
 var token_state 
 var id;
 var role;
+var state = 0;
 
 
 function create_jwt (payload){
@@ -110,6 +111,7 @@ async function login(Username,Password){  //user and host login
                 
             }
             else{
+                state = 1
                 return "User not found or password error"
             }
         } 
@@ -232,9 +234,11 @@ async function view_database (){
 app.post('/login',verifyToken, async(req, res) => {   //login
     if(token_state == 0){
         let answer = await login(req.body.username,req.body.password);
-        res.cookie("sessid", jwt_token, {
-            httpOnly: true,
-        });
+        if (state == 0){
+            res.cookie("sessid", jwt_token, {
+                httpOnly: true,
+            });
+        }
         res.status(200).send(answer)
     }
     else{
@@ -274,7 +278,7 @@ app.post ('/login/user/issue', verifyToken, async(req, res) => {
         else
             res.send ("you are not a host")
     else
-        res.send ("you have not login yet")
+        res.send("you have not login yet")
 })
 
 app.post ('/login/visitor/pass', verifyToken, async(req, res) => {
