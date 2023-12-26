@@ -127,6 +127,27 @@ async function visitor_display (){
 }
 
 async function registerUser (regIC,regUsername,regPassword,regEmail,Role){
+
+    const punctuation= '~`!@#$%^&*()-_+={}[]|\;:"<>,./?';
+    let Punch = 0
+    let Capital = 0
+
+    if (regPassword.length < 8)
+        return "Password must be at least 8 characters long"
+
+    for (i=0; i<(regPassword.length); i++){
+        if (punctuation.includes(regPassword[i])){
+            Punch = 1;
+            continue
+        }
+        if ((regPassword [i].toUpperCase()) == regPassword [i]){
+            Capital = 1;
+            continue}
+    }
+
+    if ((Punch == 0) || (Capital == 0))
+        return "Password must contains Special character and Capital letter"
+
     if (await client.db("user").collection(Role).findOne({_id : regIC})){
         return "Your IC has already registered in the system"
     }
@@ -250,7 +271,7 @@ async function view_database (){
 
 //HTTP login method
 app.post("/register" , async (req, res) => {  //register visitor
-    if ((req.body.role == "user") || (req.body.role == "visitor"))
+    if ((req.body.role == "host") || (req.body.role == "visitor"))
         if (req.body.ic.length != 14)
             res.send ("ic number invalid")
         else
