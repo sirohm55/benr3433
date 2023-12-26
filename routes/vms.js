@@ -109,9 +109,7 @@
 *                                
 *          responses:
 *              200:
-*                  description: register successfully/ register unsuccessful
-* 
-*     
+*                  description: register successfully/ register unsuccessful 
 */
 
 /**
@@ -135,8 +133,7 @@
  *          responses:
  *              200:
  *                  description: Successful login / Unsuccessful login
- *                  
- *     
+ *                      
  */
 
 /**
@@ -148,8 +145,17 @@
  *          responses:
  *              '200':
  *                  describe:  list of visitors
- *          
- * 
+ */
+
+/**
+ * @swagger
+ * /login/user/display_issue_users:
+ *      get:
+ *          summary: display all pass issued to visitor 
+ *          tags: [Host]
+ *          responses:
+ *              '200':
+ *                  describe:  list of visitors pass
  */
 
 /**
@@ -175,9 +181,7 @@
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: '#components/schemas/appointment'
- * 
- *     
+ *                              $ref: '#components/schemas/appointment'  
  */
 
 /**
@@ -204,8 +208,18 @@
  *                      application/json:
  *                          schema:
  *                              $ref: '#components/schemas/appointment'
- * 
  *     
+ */
+
+/**
+ * @swagger
+ * /login/visitor/display_pass:
+ *      get:
+ *          summary: All pass from host
+ *          tags: [Visitor]
+ *          responses:
+ *              '200':
+ *                  describe:  list of visitors pass
  */
 
 /**

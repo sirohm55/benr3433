@@ -41,7 +41,6 @@ const client = new MongoClient(uri, {
   });
 
 //global variables
-var l = "false";
 var jwt_token;  
 var token_state 
 var id;
@@ -178,8 +177,7 @@ async function issue_pass (issue_num){
                     _id:{$eq:o_id_visitor}
                 },{$push:{host:{_id: o_id_host, name: host_data.username}}})
                 console.log("The visitor is added successfully")
-                let resp = await (visitor_list ())
-                return resp
+                return "The visitor is added successfully"
                 
             }
         else
@@ -236,7 +234,6 @@ async function host_list (){
     return answer.host
 }
 
-
 async function view_database (){
     
     const result_visitor = await client.db("user").collection("visitor").find ({}).toArray (function(err, result){
@@ -252,6 +249,17 @@ async function view_database (){
 }
 
 //HTTP login method
+app.post("/register" , async (req, res) => {  //register visitor
+    if ((req.body.role == "user") || (req.body.role == "visitor"))
+        if (req.body.ic.length != 14)
+            res.send ("ic number invalid")
+        else
+            res.send(await registerUser(req.body.ic, req.body.username, req.body.password, req.body.email, req.body.role))
+    else
+        res.send("role must be user or visitor")
+
+})
+
 app.post('/login',verifyToken, async(req, res) => {   //login
     if(token_state == 0){
         let answer = await login(req.body.username,req.body.password);
@@ -268,8 +276,7 @@ app.post('/login',verifyToken, async(req, res) => {   //login
     state = 0
 })
 
-
-app.get('/login/user/display', async(req, res) => {
+app.get('/login/user/display',verifyToken, async(req, res) => {
     if (token_state == 1 )
         if (role == "host")
             res.send (await visitor_display ())
@@ -277,18 +284,6 @@ app.get('/login/user/display', async(req, res) => {
             res.send ("you are not a host")
     else
         res.send ("you have not login yet")
-
-})
-
-app.post("/register" , async (req, res) => {  //register visitor
-    if ((req.body.role == "user") || (req.body.role == "visitor"))
-        if (req.body.ic.length != 14)
-            res.send ("ic number invalid")
-        else
-            res.send(await registerUser(req.body.ic, req.body.username, req.body.password, req.body.email, req.body.role))
-    else
-        res.send("role must be user or visitor")
-
 })
 
 app.post ('/login/user/issue', verifyToken, async(req, res) => {
@@ -304,14 +299,36 @@ app.post ('/login/user/issue', verifyToken, async(req, res) => {
         res.send("you have not login yet")
 })
 
+app.get ('/login/user/display_issue_users', verifyToken, async(req, res) => {
+    if (token_state == 1 ){
+        if (role == "host"){
+            res.send (await visitor_list ())
+        }
+        else
+            res.send ("you are not a host")
+    }   
+    else
+        res.send ("you have not login yet")
+})
+
 app.post ('/login/visitor/pass', verifyToken, async(req, res) => {
     if (token_state == 1 ){
         if (role == "visitor"){
             if (req.body.host_id.length == 24)
                 res.send(await retrieve_pass (req.body.host_id))
-            else{
-                res.send(await host_list ())
-            }
+        }
+        else
+            res.send ("you are not a visitor")
+    }   
+    else
+        res.send ("you have not login yet")
+
+})
+
+app.get ('/login/visitor/display_pass', verifyToken, async(req, res) => {
+    if (token_state == 1 ){
+        if (role == "visitor"){
+            res.send (await host_list ())
         }
         else
             res.send ("you are not a visitor")
@@ -334,7 +351,6 @@ app.get('/login/logout', (req, res) => {
 })
 
 app.get('/', (req, res) => {
-    console.log("check2")
     res.redirect ("/api-docs");
  })
 
