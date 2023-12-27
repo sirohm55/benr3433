@@ -115,6 +115,17 @@
 
 /**
  * @swagger
+ * /login/user/test:
+ *      get:
+ *          summary: Act as test user
+ *          tags: [Host]
+ *          responses:
+ *              '200':
+ *                  describe:  Become test user
+ */
+
+/**
+ * @swagger
  * /login/user/display:
  *      get:
  *          summary: All register visitors display
@@ -163,6 +174,43 @@
 
 /**
  * @swagger
+ * /login/user/delete_pass:
+ *      post:
+ *          summary: Remove issued pass for visitor
+ *          description: Remove issued pass for visitor
+ *          tags: [Host]
+ *          requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: object
+ *                          properties:
+ *                              visitor_id:
+ *                                  type: string
+ *                            
+ *          responses:
+ *              200:
+ *                  description: Successful remove / Unsuccessful remove pass
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              $ref: '#components/schemas/appointment'  
+ */
+
+/**
+ * @swagger
+ * /login/visitor/test:
+ *      get:
+ *          summary: Act as test visitor
+ *          tags: [Visitor]
+ *          responses:
+ *              '200':
+ *                  describe:  Become test visitor
+ */
+
+/**
+ * @swagger
  * /login/visitor/pass:
  *      post:
  *          summary: Retrieve visitor pass
@@ -201,7 +249,7 @@
 
 /**
 * @swagger
-* /security/register:
+* /login/security/register:
 *      post:
 *          summary: Host registration
 *          description: User Register
@@ -230,8 +278,19 @@
 */
 
 /**
+ * @swagger
+ * /login/security/host_display:
+ *      get:
+ *          summary: All registered hosts display
+ *          tags: [Security]
+ *          responses:
+ *              '200':
+ *                  describe:  list of hosts
+ */
+
+/**
 * @swagger
-* /security/delete:
+* /login/security/delete_host:
 *      post:
 *          summary: Host delete 
 *          description: Host Delete
@@ -252,7 +311,44 @@
 *                                
 *          responses:
 *              200:
-*                  description: register successfully/ register unsuccessful 
+*                  description: Host deleted successfully/ unsuccessfully 
+*/
+
+/**
+ * @swagger
+ * /login/security/visitor_display:
+ *      get:
+ *          summary: All registered visitors display
+ *          tags: [Security]
+ *          responses:
+ *              '200':
+ *                  describe:  list of visitors
+ */
+
+/**
+* @swagger
+* /login/security/delete_visitor:
+*      post:
+*          summary: Visitor delete 
+*          description: Visitor Delete
+*          tags: [Security]
+*          requestBody:
+*              required: true
+*              content:
+*                  application/json:
+*                      schema:
+*                          type: object
+*                          properties:
+*                               id:
+*                                   type: string
+*                               username:
+*                                   type: string
+*                               email:
+*                                    type: string
+*                                
+*          responses:
+*              200:
+*                  description: Visitor deleted successfully/ unsuccessfully 
 */
 
 /**

@@ -126,6 +126,15 @@ async function visitor_display (){
     return result
 }
 
+async function user_display (){
+    const option={projection:{password:0,ic:0,visitor:0}}
+    const result = await client.db("user").collection("host").find ({},option).toArray (function(err, result){
+        if (err) throw err;
+    })
+    console.log (result)
+    return result
+}
+
 async function registerUser (regIC,regUsername,regPassword,regEmail,Role){
 
     const punctuation= '~`!@#$%^&*()-_+={}[]|\;:"<>,./?';
@@ -191,11 +200,46 @@ async function deleteUser(Id, Username, Email){
     if (!result)
         return "Host not found"
     
+    while (await client.db("user").collection("visitor").findOne({"host._id" : host_id})){
+        await client.db("user").collection("visitor").updateOne({
+            "host._id" : host_id
+        },{$pull:{host:{name:result.username,_id: host_id}}},{upsert:true})
+    }
+    
     await client.db("user").collection("host").deleteOne({
             _id:{$eq:host_id}
         })
     
-    return "Host deleted successfully"
+    return result.username + " deleted successfully"
+}
+
+async function deleteVisitor(Id, Username, Email){
+
+    var mongo = require ("mongodb")
+    const visitor_id = new mongo.ObjectId(Id)
+
+    const result = await client.db("user").collection("visitor").findOne({
+        $and:[
+            {username:{$eq:Username}},
+            {_id:{$eq:visitor_id}},
+            {email:{$eq:Email}}
+            ]
+        })
+    
+    if (!result)
+        return "Visitor not found"
+    
+    while (await client.db("user").collection("host").findOne({"visitor._id" : visitor_id})){
+        await client.db("user").collection("host").updateOne({
+            "visitor._id" : visitor_id
+        },{$pull:{visitor:{name:result.username,_id: visitor_id}}},{upsert:true})
+    }
+    
+    await client.db("user").collection("visitor").deleteOne({
+            _id:{$eq:visitor_id}
+        })
+    
+    return result.username + " deleted successfully"
 }
 
 async function issue_pass (issue_num){
@@ -227,6 +271,37 @@ async function issue_pass (issue_num){
         else
             return "you have not login"
 
+        }
+}
+
+async function delete_pass (del_visitor_pass){
+
+    var mongo = require ("mongodb")
+    const o_id_visitor = new mongo.ObjectId(del_visitor_pass)
+    const o_id_host = new mongo.ObjectId(id)
+
+    if (!(await client.db("user").collection("visitor").findOne({_id : o_id_visitor}))){
+        return "Invalid visitor id"
+    }
+    else {
+        if(await client.db("user").collection("host").findOne({_id: o_id_host})){
+                let visitor_data = await client.db("user").collection("visitor").findOne({_id : o_id_visitor})
+                let host_data = await client.db("user").collection("host").findOne({_id : o_id_host})
+                if(!(await client.db("user").collection("host").findOne({_id: o_id_host, "visitor._id": o_id_visitor,"visitor.name": visitor_data.username})))
+                    return "the visitor pass you issued is not in the list"
+                await client.db("user").collection("host").updateOne({
+                    _id:{$eq:o_id_host}
+                },{$pull:{visitor:{_id: o_id_visitor, name: visitor_data.username}}},{upsert:true})
+                
+                await client.db("user").collection("visitor").updateOne({
+                    _id:{$eq:o_id_visitor}
+                },{$pull:{host:{_id: o_id_host, name: host_data.username}}},{upsert:true})
+                console.log("The visitor pass is removed successfully")
+                return "The visitor pass is removed successfully"
+                
+            }
+        else
+            return "you have not login"
         }
 }
 
@@ -295,6 +370,13 @@ async function login_admin(Username,Password,Secret){
         create_jwt ({id: result._id, role: result.role})
         return admin + " Successfully Login"
     }
+
+    else{
+        state = 1
+        return "username/password/secret is incorrect"
+    } 
+
+
 }
 
 async function view_database (){
@@ -325,7 +407,7 @@ app.post('/login',verifyToken, async(req, res) => {   //login
         res.status(200).send(answer)
     }
     else{
-        res.status(200).send("you had logged in")
+        res.status(200).send("you had logged in as " + role)
     }
     state = 0
 })
@@ -341,7 +423,7 @@ app.post('/login/admin_login',verifyToken, async(req, res) => {   //login
         res.status(200).send(answer)
     }
     else{
-        res.status(200).send("you had logged in")
+        res.status(200).send("you had logged in as " + role)
     }
     state = 0
 })
@@ -361,6 +443,19 @@ app.post ('/login/user/issue', verifyToken, async(req, res) => {
         if (role == "host")
             if (req.body.visitor_id.length == 24)
                 res.send(await issue_pass (req.body.visitor_id))
+            else
+                res.send("Invalid visitor id")
+        else
+            res.send ("you are not a host")
+    else
+        res.send("you have not login yet")
+})
+
+app.post ('/login/user/delete_pass', verifyToken, async(req, res) => {
+    if (token_state == 1 )
+        if (role == "host")
+            if (req.body.visitor_id.length == 24)
+                res.send(await delete_pass (req.body.visitor_id))
             else
                 res.send("Invalid visitor id")
         else
@@ -408,14 +503,7 @@ app.get ('/login/visitor/display_pass', verifyToken, async(req, res) => {
 
 })
 
-app.get ('/login/admin/access', verifyToken, async(req, res) => {
-    if ((token_state == 1) && (role == "admin"))
-        res.send(await view_database ())
-    else
-        res.send ("you have not login yet")
-})
-
-app.post("/security/register" ,verifyToken, async (req, res) => {  //register visitor
+app.post("/login/security/register" ,verifyToken, async (req, res) => {  //register visitor
     if ((token_state == 1) && (role == "security"))
         if ((req.body.role == "host") || (req.body.role == "visitor"))
             if (req.body.ic.length != 14)
@@ -429,11 +517,45 @@ app.post("/security/register" ,verifyToken, async (req, res) => {  //register vi
 
 })
 
-app.post("/security/delete" ,verifyToken, async (req, res) => {  //register visitor
+app.get("/login/security/visitor_display" ,verifyToken, async (req, res) => {  //register visitor
     if ((token_state == 1) && (role == "security"))
-        res.send (await deleteUser(req.body.id, req.body.username, req.body.email))
+        res.send (await visitor_display ())
     else
         res.send ("You are not a security")
+})
+
+app.get("/login/security/host_display" ,verifyToken, async (req, res) => {  //register visitor
+    if ((token_state == 1) && (role == "security"))
+        res.send (await user_display ())
+    else
+        res.send ("You are not a security")
+})
+
+app.post("/login/security/delete_host" ,verifyToken, async (req, res) => {  //register visitor
+    if ((token_state == 1) && (role == "security"))
+        if (req.body.id.length == 24)
+            res.send (await deleteUser(req.body.id, req.body.username, req.body.email))
+        else
+            res.send ("Invalid host id")
+    else
+        res.send ("You are not a security")
+})
+
+app.post("/login/security/delete_visitor" ,verifyToken, async (req, res) => {  //register visitor
+    if ((token_state == 1) && (role == "security"))
+        if (req.body.id.length == 24)
+            res.send (await deleteVisitor(req.body.id, req.body.username, req.body.email))
+        else
+            res.send ("Invalid visitor id")
+    else
+        res.send ("You are not a security")
+})
+
+app.get ('/login/admin/access', verifyToken, async(req, res) => {
+    if ((token_state == 1) && (role == "admin"))
+        res.send(await view_database ())
+    else
+        res.send ("you have not login yet")
 })
 
 app.get('/login/logout', (req, res) => {
@@ -444,6 +566,38 @@ app.get('/login/logout', (req, res) => {
 app.get('/', (req, res) => {
     res.redirect ("/api-docs");
  })
+
+app.get('/login/user/test',verifyToken, async(req, res) => {   //login
+    if(token_state == 0){
+        create_jwt ({id: "658c481cb28bf3cc216e5582", role: "host"})
+        
+        res.cookie("sessid", jwt_token, {
+            httpOnly: true,
+        });
+        
+        res.status(200).send(answer)
+    }
+    else{
+        res.status(200).send("you had logged in as " + role)
+    }
+    state = 0
+})
+
+app.get('/login/visitor/test',verifyToken, async(req, res) => {   //login
+    if(token_state == 0){
+        create_jwt ({id: "658c488bb28bf3cc216e5584", role: "visitor"})
+        
+        res.cookie("sessid", jwt_token, {
+            httpOnly: true,
+        });
+        
+        res.status(200).send(answer)
+    }
+    else{
+        res.status(200).send("you had logged in as " + role)
+    }
+    state = 0
+})
 
 function verifyToken (req, res, next){
     const token = req.cookies.sessid;
