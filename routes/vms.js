@@ -57,7 +57,7 @@
 /**
  * @swagger
  * tags:
- *      name: Login_or_Register
+ *      name: Login_or_Logout
  *      description: Action that must be perform before accessing the resources
  */
 
@@ -79,38 +79,15 @@
  * @swagger
  * tags:
  *      name: Security
- *      description: API for security (administrator)
+ *      description: API for security 
  */
 
 /**
-* @swagger
-* /register:
-*      post:
-*          summary: User registration (host/visitor)
-*          description: User Register
-*          tags: [Login_or_Register]
-*          requestBody:
-*              required: true
-*              content:
-*                  application/json:
-*                      schema:
-*                          type: object
-*                          properties:
-*                               ic:
-*                                   type: string 
-*                               username:
-*                                   type: string
-*                               password:
-*                                   type: string
-*                               email:
-*                                    type: string
-*                               role:
-*                                    type: string
-*                                
-*          responses:
-*              200:
-*                  description: register successfully/ register unsuccessful 
-*/
+ * @swagger
+ * tags:
+ *      name: Admin
+ *      description: API for Admin (administrator)
+ */
 
 /**
  * @swagger
@@ -118,7 +95,7 @@
  *      post:
  *          summary: user login
  *          description: User Login
- *          tags: [Login_or_Register]
+ *          tags: [Login_or_Logout]
  *          requestBody:
  *              required: true
  *              content:
@@ -223,11 +200,93 @@
  */
 
 /**
+* @swagger
+* /security/register:
+*      post:
+*          summary: Host registration
+*          description: User Register
+*          tags: [Security]
+*          requestBody:
+*              required: true
+*              content:
+*                  application/json:
+*                      schema:
+*                          type: object
+*                          properties:
+*                               ic:
+*                                   type: string 
+*                               username:
+*                                   type: string
+*                               password:
+*                                   type: string
+*                               email:
+*                                    type: string
+*                               role:
+*                                    type: string
+*                                
+*          responses:
+*              200:
+*                  description: register successfully/ register unsuccessful 
+*/
+
+/**
+* @swagger
+* /security/delete:
+*      post:
+*          summary: Host delete 
+*          description: Host Delete
+*          tags: [Security]
+*          requestBody:
+*              required: true
+*              content:
+*                  application/json:
+*                      schema:
+*                          type: object
+*                          properties:
+*                               id:
+*                                   type: string
+*                               username:
+*                                   type: string
+*                               email:
+*                                    type: string
+*                                
+*          responses:
+*              200:
+*                  description: register successfully/ register unsuccessful 
+*/
+
+/**
  * @swagger
- * /login/security/access:
+ * /login/admin_login:
+ *      post:
+ *          summary: user login
+ *          description: User Login
+ *          tags: [Admin]
+ *          requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: object
+ *                          properties:
+ *                              username:
+ *                                  type: string
+ *                              password:
+ *                                  type: string
+ *                              secret:
+ *                                  type: string
+ *          responses:
+ *              200:
+ *                  description: Successful login / Unsuccessful login
+ *                      
+ */
+
+/**
+ * @swagger
+ * /login/admin/access:
  *      get:
  *          summary: All register visitors & users display
- *          tags: [Security]
+ *          tags: [Admin]
  *          responses:
  *              '200':
  *                  describe:  list of visitors & users
@@ -245,7 +304,8 @@
  * @swagger
  * /login/logout:
  *      get:    
- *          summary: logout   
+ *          summary: logout  
+ *          tags: [Login_or_Logout] 
  *          responses:
  *              200: 
  *                  description: logout success

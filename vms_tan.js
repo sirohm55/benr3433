@@ -175,6 +175,29 @@ async function registerUser (regIC,regUsername,regPassword,regEmail,Role){
     }
 }
 
+async function deleteUser(Id, Username, Email){
+
+    var mongo = require ("mongodb")
+    const host_id = new mongo.ObjectId(Id)
+
+    const result = await client.db("user").collection("host").findOne({
+        $and:[
+            {username:{$eq:Username}},
+            {_id:{$eq:host_id}},
+            {email:{$eq:Email}}
+            ]
+        })
+    
+    if (!result)
+        return "Host not found"
+    
+    await client.db("user").collection("host").deleteOne({
+            _id:{$eq:host_id}
+        })
+    
+    return "Host deleted successfully"
+}
+
 async function issue_pass (issue_num){
 
     var mongo = require ("mongodb")
@@ -255,6 +278,25 @@ async function host_list (){
     return answer.host
 }
 
+async function login_admin(Username,Password,Secret){
+
+    const result = await client.db("user").collection("admin").findOne({  
+        $and:[
+            {username:{$eq:Username}},
+            {password:{$eq:Password}},
+            {secret:{$eq:Secret}}
+            ]
+    })
+
+    if(result){
+        admin = result.username
+        console.log(result)
+        console.log("Successfully Login")
+        create_jwt ({id: result._id, role: result.role})
+        return admin + " Successfully Login"
+    }
+}
+
 async function view_database (){
     
     const result_visitor = await client.db("user").collection("visitor").find ({}).toArray (function(err, result){
@@ -270,20 +312,27 @@ async function view_database (){
 }
 
 //HTTP login method
-app.post("/register" , async (req, res) => {  //register visitor
-    if ((req.body.role == "host") || (req.body.role == "visitor"))
-        if (req.body.ic.length != 14)
-            res.send ("ic number invalid")
-        else
-            res.send(await registerUser(req.body.ic, req.body.username, req.body.password, req.body.email, req.body.role))
-    else
-        res.send("role must be user or visitor")
 
-})
 
 app.post('/login',verifyToken, async(req, res) => {   //login
     if(token_state == 0){
         let answer = await login(req.body.username,req.body.password);
+        if (state == 0){
+            res.cookie("sessid", jwt_token, {
+                httpOnly: true,
+            });
+        }
+        res.status(200).send(answer)
+    }
+    else{
+        res.status(200).send("you had logged in")
+    }
+    state = 0
+})
+
+app.post('/login/admin_login',verifyToken, async(req, res) => {   //login
+    if(token_state == 0){
+        let answer = await login_admin(req.body.username,req.body.password, req.body.secret);
         if (state == 0){
             res.cookie("sessid", jwt_token, {
                 httpOnly: true,
@@ -359,11 +408,32 @@ app.get ('/login/visitor/display_pass', verifyToken, async(req, res) => {
 
 })
 
-app.get ('/login/security/access', verifyToken, async(req, res) => {
-    if ((token_state == 1) && (role == "security"))
+app.get ('/login/admin/access', verifyToken, async(req, res) => {
+    if ((token_state == 1) && (role == "admin"))
         res.send(await view_database ())
     else
         res.send ("you have not login yet")
+})
+
+app.post("/security/register" ,verifyToken, async (req, res) => {  //register visitor
+    if ((token_state == 1) && (role == "security"))
+        if ((req.body.role == "host") || (req.body.role == "visitor"))
+            if (req.body.ic.length != 14)
+                res.send ("ic number invalid")
+            else
+                res.send(await registerUser(req.body.ic, req.body.username, req.body.password, req.body.email, req.body.role))
+        else
+            res.send("role must be host or visitor")
+    else
+        res.send ("You are not a security")
+
+})
+
+app.post("/security/delete" ,verifyToken, async (req, res) => {  //register visitor
+    if ((token_state == 1) && (role == "security"))
+        res.send (await deleteUser(req.body.id, req.body.username, req.body.email))
+    else
+        res.send ("You are not a security")
 })
 
 app.get('/login/logout', (req, res) => {
