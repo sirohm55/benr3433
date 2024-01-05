@@ -125,6 +125,38 @@
  */
 
 /**
+* @swagger
+* /register:
+*      post:
+*          summary: Host registration
+*          description: User Register
+*          tags: [Host]
+*          requestBody:
+*              required: true
+*              content:
+*                  application/json:
+*                      schema:
+*                          type: object
+*                          properties:
+*                               ic:
+*                                   type: string 
+*                               username:
+*                                   type: string
+*                               password:
+*                                   type: string
+*                               email:
+*                                   type: string
+*                               unit_number:
+*                                   type: string
+*                               contact_number:
+*                                   type: string
+*                                
+*          responses:
+*              200:
+*                  description: register is waiting for approval / rejected 
+*/
+
+/**
  * @swagger
  * /login/user/display:
  *      get:
@@ -249,10 +281,10 @@
 
 /**
 * @swagger
-* /login/security/register:
+* /login/security/registration_approval:
 *      post:
-*          summary: Host registration
-*          description: User Register
+*          summary: Host registration approval
+*          description: Host registration approval
 *          tags: [Security]
 *          requestBody:
 *              required: true
@@ -261,20 +293,34 @@
 *                      schema:
 *                          type: object
 *                          properties:
-*                               ic:
-*                                   type: string 
-*                               username:
+*                               registration_id:
 *                                   type: string
-*                               password:
-*                                   type: string
-*                               email:
-*                                    type: string
-*                               role:
-*                                    type: string
 *                                
 *          responses:
 *              200:
 *                  description: register successfully/ register unsuccessful 
+*/
+
+/**
+* @swagger
+* /login/security/registration_rejection:
+*      post:
+*          summary: Host registration rejection
+*          description: Host registration rejection
+*          tags: [Security]
+*          requestBody:
+*              required: true
+*              content:
+*                  application/json:
+*                      schema:
+*                          type: object
+*                          properties:
+*                               rejection_id:
+*                                   type: string
+*                                
+*          responses:
+*              200:
+*                  description: register rejected successfully/ unsuccessful
 */
 
 /**
@@ -313,6 +359,8 @@
 *              200:
 *                  description: Host deleted successfully/ unsuccessfully 
 */
+
+
 
 /**
  * @swagger

@@ -135,7 +135,7 @@ async function user_display (){
     return result
 }
 
-async function registerUser (regIC,regUsername,regPassword,regEmail,regUnit,regContact){
+async function registerUser (regIC,regUsername,regPassword,regEmail,regUnit,Role){
 
     const punctuation= '~`!@#$%^&*()-_+={}[]|\;:"<>,./?';
     let Punch = 0
@@ -157,29 +157,21 @@ async function registerUser (regIC,regUsername,regPassword,regEmail,regUnit,regC
     if ((Punch == 0) || (Capital == 0))
         return "Password must contains Special character and Capital letter"
 
-    if (await client.db("user").collection("register").findOne({ic:regIC,username:regUsername,unit_number:regUnit,email:regEmail,contact_number: regContact})){
-        return "request pending"
-    }
-
-    if (await client.db("user").collection("host").findOne({ic:regIC})){
+    if (await client.db("user").collection(Role).findOne({_id : regIC})){
         return "Your IC has already registered in the system"
     }
     
     else {
-        if(await client.db("user").collection("host").findOne({username: regUsername}) || await client.db("user").collection("register").findOne({username: regUsername})){
+        if( await client.db("user").collection(Role).findOne({username: regUsername})){
             return "Your username already exist. Please use other username"
         }
 
-        else if(await client.db("user").collection("host").findOne({unit_number: regUnit}) || await client.db("user").collection("register").findOne({unit_number: regUnit})){
+        else if(await client.db("user").collection(Role).findOne({unit_number: regUnit})){
             return "Your unit number already registered. Please try again"
         }
 
-        else if(await client.db("user").collection("host").findOne({email: regEmail}) || await client.db("user").collection("register").findOne({email: regEmail})){
+        else if(await client.db("user").collection(Role).findOne({email: regEmail})){
             return "Your email already exist. Please use other email"
-        }
-
-        else if(await client.db("user").collection("host").findOne({contact_number: regContact}) || await client.db("user").collection("register").findOne({contact_number: regContact})){
-            return "Your contact number already exist. Please use other contact number"
         }
 
         else{
@@ -188,57 +180,13 @@ async function registerUser (regIC,regUsername,regPassword,regEmail,regUnit,regC
                 "username":regUsername,
                 "password":regPassword,
                 "email":regEmail,
-                "contact_number": regContact,
                 "unit_number": regUnit,
-                "role":"host"
+                "role":Role
             })
             let data = regUsername + " is successfully register"
             return data
         }
     }
-}
-
-async function host_approval (regID){
-    var mongo = require ("mongodb")
-    const host_id = new mongo.ObjectId(regID)
-    const option={projection:{_id:0}}
-
-    const result = await client.db("user").collection("register").findOne({_id:host_id}, option)
-
-    console.log (result)
-    if (!result)
-        return "host registration id not found"
-
-    await client.db("user").collection("host").insertOne({
-        "ic":result.ic,
-        "username": result.username,
-        "password": result.password,
-        "email": result.email,
-        "contact_number": result.contact_number,
-        "unit_number": result.unit_number,
-        "role": "host"
-    })
-    await client.db("user").collection("register").deleteOne({
-        _id:{$eq:host_id}
-    })
-    return "host registered successfully"
-}
-
-async function host_rejection (regID){
-    var mongo = require ("mongodb")
-    const host_id = new mongo.ObjectId(regID)
-    const option={projection:{_id:0}}
-
-    const result = await client.db("user").collection("register").findOne({_id:host_id}, option)
-
-    console.log (result)
-    if (!result)
-        return "host registration id not found"
-
-    await client.db("user").collection("register").deleteOne({
-        _id:{$eq:host_id}
-    })
-    return "host rejected successfully"
 }
 
 async function deleteUser(Id, Username, Email){
@@ -560,33 +508,15 @@ app.get ('/login/visitor/display_pass', verifyToken, async(req, res) => {
 
 })
 
-app.post("/register" , async (req, res) => {  //register visitor
-    if (req.body.ic.length != 14)
-        res.send ("ic number invalid")
-    else
-        res.send(await registerUser(req.body.ic, req.body.username, req.body.password, req.body.email, req.body.unit_number, req.body.contact))
-})
-
-
-app.post("/login/security/registration_approval" ,verifyToken, async (req, res) => {  //register visitor
-    if ((token_state == 1) && (role == "security")) {
-        if (req.body.registration_id.length == 24)
-            res.send(await host_approval(req.body.registration_id))
+app.post("/login/host/register" ,verifyToken, async (req, res) => {  //register visitor
+    if ((token_state == 1) && (role == "security"))
+        if ((req.body.role == "host") || (req.body.role == "visitor"))
+            if (req.body.ic.length != 14)
+                res.send ("ic number invalid")
+            else
+                res.send(await registerUser(req.body.ic, req.body.username, req.body.password, req.body.email, req.body.unit, req.body.role))
         else
-            res.send ("Invalid host id")
-    }
-    else
-        res.send ("You are not a security")
-
-})
-
-app.post("/login/security/registration_rejection" ,verifyToken, async (req, res) => {  //register visitor
-    if ((token_state == 1) && (role == "security")) {
-        if (req.body.rejection_id.length == 24)
-            res.send(await host_rejection(req.body.rejection_id))
-        else
-            res.send ("Invalid host id")
-    }
+            res.send("role must be host or visitor")
     else
         res.send ("You are not a security")
 
