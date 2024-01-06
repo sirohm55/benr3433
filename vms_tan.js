@@ -200,6 +200,7 @@ async function retrieve_pass (retrieve_num){
 
 //host api
 
+
 async function visitor_display (){
     const option={projection:{password:0,ic:0,host:0}}
     const result = await client.db("user").collection("visitor").find ({},option).toArray (function(err, result){
@@ -235,7 +236,7 @@ async function registerUser (regIC,regUsername,regPassword,regEmail,regUnit,regC
         return "request pending"
     }
 
-    if (await client.db("user").collection("host").findOne({ic:regIC})){
+    if (await client.db("user").collection("host").findOne({ic:regIC}) || await client.db("user").collection("register").findOne({ic:regIC})){
         return "Your IC has already registered in the system"
     }
     
@@ -304,6 +305,64 @@ async function issue_pass (issue_num){
         }
 }
 
+async function registerUserTest (regIC,regUsername,regPassword,regEmail,regUnit,regContact){
+
+    const punctuation= '~`!@#$%^&*()-_+={}[]|\;:"<>,./?';
+    let Punch = 0
+    let Capital = 0
+
+    if (regPassword.length < 8)
+        return "Password must be at least 8 characters long"
+
+    for (i=0; i<(regPassword.length); i++){
+        if (punctuation.includes(regPassword[i])){
+            Punch = 1;
+            continue
+        }
+        if ((regPassword [i].toUpperCase()) == regPassword [i]){
+            Capital = 1;
+            continue}
+    }
+
+    if ((Punch == 0) || (Capital == 0))
+        return "Password must contains Special character and Capital letter"
+
+    if (await client.db("user").collection("host").findOne({ic:regIC}) || await client.db("user").collection("register").findOne({ic:regIC})){
+        return "Your IC has already registered in the system"
+    }
+    
+    else {
+        if(await client.db("user").collection("host").findOne({username: regUsername}) || await client.db("user").collection("register").findOne({username: regUsername})){
+            return "Your username already exist. Please use other username"
+        }
+
+        else if(await client.db("user").collection("host").findOne({unit_number: regUnit}) || await client.db("user").collection("register").findOne({unit_number: regUnit})){
+            return "Your unit number already registered. Please try again"
+        }
+
+        else if(await client.db("user").collection("host").findOne({email: regEmail}) || await client.db("user").collection("register").findOne({email: regEmail})){
+            return "Your email already exist. Please use other email"
+        }
+
+        else if(await client.db("user").collection("host").findOne({contact_number: regContact}) || await client.db("user").collection("register").findOne({contact_number: regContact})){
+            return "Your contact number already exist. Please use other contact number"
+        }
+
+        else{
+            await client.db("user").collection("host").insertOne({
+                "ic":regIC,
+                "username":regUsername,
+                "password":regPassword,
+                "email":regEmail,
+                "contact_number": regContact,
+                "unit_number": regUnit,
+                "role":"host"
+            })
+            let data = regUsername + " is successfully register"
+            return data
+        }
+    }
+}
 //security function
 
 async function registration_display (){
@@ -674,7 +733,7 @@ app.post("/register" , async (req, res) => {  //register visitor
     if (req.body.ic.length != 14)
         res.send ("ic number invalid")
     else
-        res.send(await registerUser(req.body.ic, req.body.username, req.body.password, req.body.email, req.body.unit_number, req.body.contact))
+        res.send(await registerUser(req.body.ic, req.body.username, req.body.password, req.body.email, req.body.unit_number, req.body.contact_number))
 })
 
 //security api
@@ -820,37 +879,44 @@ app.get('/', (req, res) => {
     res.redirect ("/api-docs");
  })
 
-app.get('/login/user/test',verifyToken, async(req, res) => {   //login
-    if(token_state == 0){
-        create_jwt ({id: "658c481cb28bf3cc216e5582", role: "host"})
+// app.get('/login/user/test/create',verifyToken, async(req, res) => {   //login
+//     if(token_state == 0){
+//         create_jwt ({id: "658c481cb28bf3cc216e5582", role: "host"})
         
-        res.cookie("sessid", jwt_token, {
-            httpOnly: true,
-        });
+//         res.cookie("sessid", jwt_token, {
+//             httpOnly: true,
+//         });
         
-        res.status(200).send(answer)
-    }
-    else{
-        res.status(200).send("you had logged in as " + role)
-    }
-    state = 0
+//         res.status(200).send(answer)
+//     }
+//     else{
+//         res.status(200).send("you had logged in as " + role)
+//     }
+//     state = 0
+// })
+
+app.post("/user/test/create" , async (req, res) => {  //register visitor
+    if (req.body.ic.length != 14)
+        res.send ("ic number invalid")
+    else
+        res.send(await registerUserTest(req.body.ic, req.body.username, req.body.password, req.body.email, req.body.unit_number, req.body.contact_number))
 })
 
-app.get('/login/visitor/test',verifyToken, async(req, res) => {   //login
-    if(token_state == 0){
-        create_jwt ({id: "658c488bb28bf3cc216e5584", role: "visitor"})
+// app.get('/login/visitor/test',verifyToken, async(req, res) => {   //login
+//     if(token_state == 0){
+//         create_jwt ({id: "658c488bb28bf3cc216e5584", role: "visitor"})
         
-        res.cookie("sessid", jwt_token, {
-            httpOnly: true,
-        });
+//         res.cookie("sessid", jwt_token, {
+//             httpOnly: true,
+//         });
         
-        res.status(200).send(answer)
-    }
-    else{
-        res.status(200).send("you had logged in as " + role)
-    }
-    state = 0
-})
+//         res.status(200).send(answer)
+//     }
+//     else{
+//         res.status(200).send("you had logged in as " + role)
+//     }
+//     state = 0
+// })
 
 function verifyToken (req, res, next){
     const token = req.cookies.sessid;

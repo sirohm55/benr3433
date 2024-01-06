@@ -114,15 +114,36 @@
  */
 
 /**
- * @swagger
- * /login/user/test:
- *      get:
- *          summary: Act as test user
- *          tags: [Host]
- *          responses:
- *              '200':
- *                  describe:  Become test user
- */
+* @swagger
+* /user/test/create:
+*      post:
+*          summary: Host registration test
+*          description: User Register test
+*          tags: [Host]
+*          requestBody:
+*              required: true
+*              content:
+*                  application/json:
+*                      schema:
+*                          type: object
+*                          properties:
+*                               ic:
+*                                   type: string 
+*                               username:
+*                                   type: string
+*                               password:
+*                                   type: string
+*                               email:
+*                                   type: string
+*                               unit_number:
+*                                   type: string
+*                               contact_number:
+*                                   type: string
+*                                
+*          responses:
+*              200:
+*                  description: register is successful/ unsuccessful
+*/
 
 /**
 * @swagger
@@ -228,17 +249,6 @@
  *                      application/json:
  *                          schema:
  *                              $ref: '#components/schemas/appointment'  
- */
-
-/**
- * @swagger
- * /login/visitor/test:
- *      get:
- *          summary: Act as test visitor
- *          tags: [Visitor]
- *          responses:
- *              '200':
- *                  describe:  Become test visitor
  */
 
 /**
