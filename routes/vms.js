@@ -280,6 +280,17 @@
  */
 
 /**
+ * @swagger
+ * /login/security/registration_display:
+ *      get:
+ *          summary: All pass from host
+ *          tags: [Security]
+ *          responses:
+ *              '200':
+ *                  describe:  list of host registration list
+ */
+
+/**
 * @swagger
 * /login/security/registration_approval:
 *      post:
@@ -322,6 +333,38 @@
 *              200:
 *                  description: register rejected successfully/ unsuccessful
 */
+
+/**
+ * @swagger
+ * /login/security/pass_display:
+ *      get:
+ *          summary: list of visitor pass waiting for verification
+ *          tags: [Security]
+ *          responses:
+ *              '200':
+ *                  describe:  list visitor pass waiting for verification
+ */
+
+/**
+* @swagger
+* /login/security/verify_pass:
+*      post:
+*          summary: visitor pass verification
+*          description: visitor pass verification
+*          tags: [Security]
+*          requestBody:
+*              required: true
+*              content:
+*                  application/json:
+*                      schema:
+*                          type: object
+*                          properties:
+*                               reference_id:
+*                                   type: string
+*                                
+*          responses:
+*              200:
+*                  description: visitor pass verified successfully/ unsuccessfully
 
 /**
  * @swagger

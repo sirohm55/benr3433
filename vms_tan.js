@@ -306,6 +306,15 @@ async function issue_pass (issue_num){
 
 //security function
 
+async function registration_display (){
+
+    const option={projection:{password:0}}
+
+    const result = await client.db("user").collection("register").findOn({}, option)
+
+    return result
+}
+
 async function host_approval (regID){
     var mongo = require ("mongodb")
     const host_id = new mongo.ObjectId(regID)
@@ -347,6 +356,31 @@ async function host_rejection (regID){
         _id:{$eq:host_id}
     })
     return "host rejected successfully"
+}
+
+async function pass_display (){
+    const result = await client.db("user").collection("host").find ({}).toArray (function(err, result){
+        if (err) throw err;
+    })
+    console.log (result)
+    return result
+}
+
+async function pass_verification (ref_num){
+    var mongo = require ("mongodb")
+    const ref = new mongo.ObjectId(ref_num)
+    const option={projection:{_id:0}}
+
+    const result = await client.db("user").collection("waiting").findOne({_id:ref},option)
+
+    if(!result)
+        return "visitor pass not found"
+
+    await client.db("user").collection("waiting").deleteOne({
+        _id:{$eq:ref}
+    })
+    return "visitor pass is verified\n" + result
+
 }
 
 async function user_display (){
@@ -637,6 +671,14 @@ app.post("/register" , async (req, res) => {  //register visitor
 
 //security api
 
+app.get("/login/security/registration_display" ,verifyToken, async (req, res) => {  //register visitor
+    if ((token_state == 1) && (role == "security")) 
+        res.send(await registration_display ())
+    else
+        res.send ("You are not a security")
+
+})
+
 app.post("/login/security/registration_approval" ,verifyToken, async (req, res) => {  //register visitor
     if ((token_state == 1) && (role == "security")) {
         if (req.body.registration_id.length == 24)
@@ -659,6 +701,25 @@ app.post("/login/security/registration_rejection" ,verifyToken, async (req, res)
     else
         res.send ("You are not a security")
 
+})
+
+app.get("/login/security/pass_display" ,verifyToken, async (req, res) => {  //register visitor
+    if ((token_state == 1) && (role == "security"))
+        res.send (await pass_display())
+    else
+        res.send ("You are not a security")
+})
+
+app.post("/login/security/verify_pass" ,verifyToken, async (req, res) => {  //register visitor
+    if ((token_state == 1) && (role == "security"))
+    {
+        if (req.body.reference_id.length == 24)
+            res.send(await pass_verification(req.body.reference_id))
+        else
+            res.send ("Invalid host id")
+    }
+    else
+        res.send ("You are not a security")
 })
 
 app.get("/login/security/visitor_display" ,verifyToken, async (req, res) => {  //register visitor
