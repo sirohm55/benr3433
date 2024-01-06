@@ -427,6 +427,50 @@
 
 /**
  * @swagger
+ * /login/admin/change_to_security:
+ *      post:
+ *          summary: Change host to security
+ *          description: Change host to security
+ *          tags: [Admin]
+ *          requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: object
+ *                          properties:
+ *                              host_id:
+ *                                  type: string
+ *          responses:
+ *              200:
+ *                  description: Successful/ Unsuccessful to become security
+ *                      
+ */
+
+/**
+ * @swagger
+ * /login/admin/change_to_host:
+ *      post:
+ *          summary: Change security to host
+ *          description: Change security to host
+ *          tags: [Admin]
+ *          requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: object
+ *                          properties:
+ *                              security_id:
+ *                                  type: string
+ *          responses:
+ *              200:
+ *                  description: Successful/ Unsuccessful to become host
+ *                      
+ */
+
+/**
+ * @swagger
  * /login/admin/access:
  *      get:
  *          summary: All register visitors & users display

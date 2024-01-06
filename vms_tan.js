@@ -29,6 +29,8 @@ app.listen(port, () => {
  })
 
 
+
+ 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = "mongodb+srv://sirohm55:JUNyantan15243@vms.vbsh1ml.mongodb.net/?retryWrites=true&w=majority";
 
@@ -117,18 +119,90 @@ async function login(Username,Password){  //user and host login
     }
 }
 
+//visitor api
+
+async function delete_pass (del_visitor_pass){
+
+    var mongo = require ("mongodb")
+    const o_id_visitor = new mongo.ObjectId(del_visitor_pass)
+    const o_id_host = new mongo.ObjectId(id)
+
+    if (!(await client.db("user").collection("visitor").findOne({_id : o_id_visitor}))){
+        return "Invalid visitor id"
+    }
+    else {
+        if(await client.db("user").collection("host").findOne({_id: o_id_host})){
+                let visitor_data = await client.db("user").collection("visitor").findOne({_id : o_id_visitor})
+                let host_data = await client.db("user").collection("host").findOne({_id : o_id_host})
+                if(!(await client.db("user").collection("host").findOne({_id: o_id_host, "visitor._id": o_id_visitor,"visitor.name": visitor_data.username})))
+                    return "the visitor pass you issued is not in the list"
+                await client.db("user").collection("host").updateOne({
+                    _id:{$eq:o_id_host}
+                },{$pull:{visitor:{_id: o_id_visitor, name: visitor_data.username}}},{upsert:true})
+                
+                await client.db("user").collection("visitor").updateOne({
+                    _id:{$eq:o_id_visitor}
+                },{$pull:{host:{_id: o_id_host, name: host_data.username}}},{upsert:true})
+                console.log("The visitor pass is removed successfully")
+                return "The visitor pass is removed successfully"
+                
+            }
+        else
+            return "you have not login"
+        }
+}
+
+async function host_list (){
+    var mongo = require ("mongodb")
+    const o_id_visitor = new mongo.ObjectId(id)
+    const option={projection:{"host":1}}
+    const answer = await client.db("user").collection("visitor").findOne({_id: o_id_visitor},option)
+    console.log (answer.host)
+    return answer.host
+}
+
+async function retrieve_pass (retrieve_num){
+
+    var mongo = require ("mongodb")
+    const o_id_visitor = new mongo.ObjectId(id)
+    const o_id_host = new mongo.ObjectId(retrieve_num)
+
+    if(!(await client.db("user").collection("host").findOne({_id: o_id_host})))
+        return "Invalid host id number"
+
+    let visitor_data = await client.db("user").collection("visitor").findOne({_id : o_id_visitor})
+    let host_data = await client.db("user").collection("host").findOne({_id : o_id_host})
+
+    if(await client.db("user").collection("waiting").findOne({"visitor_name": visitor_data.username, "host_name": host_data.username, "host_unit_number": host_data.unit_number, "host_contact_number": host_data.contact_number})){
+        return "Your visitor pass is waiting for approval"
+    }
+
+    if(!(await client.db("user").collection("host").findOne({_id: o_id_host, "visitor._id": o_id_visitor,"visitor.name": visitor_data.username}))){
+        return "host does not issue pass to " + visitor_data.username 
+    }
+
+    await client.db("user").collection("host").updateOne({
+        _id: o_id_host
+    },{$pull:{visitor:{name:visitor_data.username},visitor:{_id: o_id_visitor}}},{upsert:true})
+
+    
+    await client.db("user").collection("visitor").updateOne({
+        _id: o_id_visitor
+    },{$pull:{host:{name:host_data.username,_id: o_id_host}}},{upsert:true})
+
+    await client.db("user").collection("waiting").insertOne({
+        "visitor_name": visitor_data.username, "host_name": host_data.username, "host_unit_number": host_data.unit_number, "host_contact_number": host_data.contact_number
+    })
+
+    console.log("Visitor",visitor_data.username,"is successfully remove")
+    return "Visitor "+visitor_data.username+" is successfully retrieve the pass, host is located at unit number " + host_data.unit_number+ ". Please wait for the approval from the security"
+}
+
+//host api
+
 async function visitor_display (){
     const option={projection:{password:0,ic:0,host:0}}
     const result = await client.db("user").collection("visitor").find ({},option).toArray (function(err, result){
-        if (err) throw err;
-    })
-    console.log (result)
-    return result
-}
-
-async function user_display (){
-    const option={projection:{password:0,ic:0,visitor:0}}
-    const result = await client.db("user").collection("host").find ({},option).toArray (function(err, result){
         if (err) throw err;
     })
     console.log (result)
@@ -198,6 +272,40 @@ async function registerUser (regIC,regUsername,regPassword,regEmail,regUnit,regC
     }
 }
 
+async function issue_pass (issue_num){
+
+    var mongo = require ("mongodb")
+    const o_id_visitor = new mongo.ObjectId(issue_num)
+    const o_id_host = new mongo.ObjectId(id)
+
+    if (!(await client.db("user").collection("visitor").findOne({_id : o_id_visitor}))){
+        return "Invalid visitor id"
+    }
+    else {
+        if(await client.db("user").collection("host").findOne({_id: o_id_host})){
+                let visitor_data = await client.db("user").collection("visitor").findOne({_id : o_id_visitor})
+                let host_data = await client.db("user").collection("host").findOne({_id : o_id_host})
+                if(await client.db("user").collection("host").findOne({_id: o_id_host, "visitor._id": o_id_visitor,"visitor.name": visitor_data.username}))
+                    return "the visitor pass you issued has already in the list"
+                await client.db("user").collection("host").updateOne({
+                    _id:{$eq:o_id_host}
+                },{$push:{visitor:{_id: o_id_visitor, name: visitor_data.username}}},{upsert:true})
+                
+                await client.db("user").collection("visitor").updateOne({
+                    _id:{$eq:o_id_visitor}
+                },{$push:{host:{_id: o_id_host, name: host_data.username}}})
+                console.log("The visitor is added successfully")
+                return "The visitor is added successfully"
+                
+            }
+        else
+            return "you have not login"
+
+        }
+}
+
+//security function
+
 async function host_approval (regID){
     var mongo = require ("mongodb")
     const host_id = new mongo.ObjectId(regID)
@@ -241,6 +349,15 @@ async function host_rejection (regID){
     return "host rejected successfully"
 }
 
+async function user_display (){
+    const option={projection:{password:0,ic:0,visitor:0}}
+    const result = await client.db("user").collection("host").find ({},option).toArray (function(err, result){
+        if (err) throw err;
+    })
+    console.log (result)
+    return result
+}
+
 async function deleteUser(Id, Username, Email){
 
     var mongo = require ("mongodb")
@@ -268,6 +385,16 @@ async function deleteUser(Id, Username, Email){
         })
     
     return result.username + " deleted successfully"
+}
+
+async function visitor_list (){
+    var mongo = require ("mongodb")
+    const o_id_host = new mongo.ObjectId(id)
+    const option={projection:{"visitor":1}}
+    const answer = await client.db("user").collection("host").findOne({_id: o_id_host},option)
+    console.log (answer.visitor)
+    return answer.visitor
+
 }
 
 async function deleteVisitor(Id, Username, Email){
@@ -299,116 +426,7 @@ async function deleteVisitor(Id, Username, Email){
     return result.username + " deleted successfully"
 }
 
-async function issue_pass (issue_num){
-
-    var mongo = require ("mongodb")
-    const o_id_visitor = new mongo.ObjectId(issue_num)
-    const o_id_host = new mongo.ObjectId(id)
-
-    if (!(await client.db("user").collection("visitor").findOne({_id : o_id_visitor}))){
-        return "Invalid visitor id"
-    }
-    else {
-        if(await client.db("user").collection("host").findOne({_id: o_id_host})){
-                let visitor_data = await client.db("user").collection("visitor").findOne({_id : o_id_visitor})
-                let host_data = await client.db("user").collection("host").findOne({_id : o_id_host})
-                if(await client.db("user").collection("host").findOne({_id: o_id_host, "visitor._id": o_id_visitor,"visitor.name": visitor_data.username}))
-                    return "the visitor pass you issued has already in the list"
-                await client.db("user").collection("host").updateOne({
-                    _id:{$eq:o_id_host}
-                },{$push:{visitor:{_id: o_id_visitor, name: visitor_data.username}}},{upsert:true})
-                
-                await client.db("user").collection("visitor").updateOne({
-                    _id:{$eq:o_id_visitor}
-                },{$push:{host:{_id: o_id_host, name: host_data.username}}})
-                console.log("The visitor is added successfully")
-                return "The visitor is added successfully"
-                
-            }
-        else
-            return "you have not login"
-
-        }
-}
-
-async function delete_pass (del_visitor_pass){
-
-    var mongo = require ("mongodb")
-    const o_id_visitor = new mongo.ObjectId(del_visitor_pass)
-    const o_id_host = new mongo.ObjectId(id)
-
-    if (!(await client.db("user").collection("visitor").findOne({_id : o_id_visitor}))){
-        return "Invalid visitor id"
-    }
-    else {
-        if(await client.db("user").collection("host").findOne({_id: o_id_host})){
-                let visitor_data = await client.db("user").collection("visitor").findOne({_id : o_id_visitor})
-                let host_data = await client.db("user").collection("host").findOne({_id : o_id_host})
-                if(!(await client.db("user").collection("host").findOne({_id: o_id_host, "visitor._id": o_id_visitor,"visitor.name": visitor_data.username})))
-                    return "the visitor pass you issued is not in the list"
-                await client.db("user").collection("host").updateOne({
-                    _id:{$eq:o_id_host}
-                },{$pull:{visitor:{_id: o_id_visitor, name: visitor_data.username}}},{upsert:true})
-                
-                await client.db("user").collection("visitor").updateOne({
-                    _id:{$eq:o_id_visitor}
-                },{$pull:{host:{_id: o_id_host, name: host_data.username}}},{upsert:true})
-                console.log("The visitor pass is removed successfully")
-                return "The visitor pass is removed successfully"
-                
-            }
-        else
-            return "you have not login"
-        }
-}
-
-async function visitor_list (){
-    var mongo = require ("mongodb")
-    const o_id_host = new mongo.ObjectId(id)
-    const option={projection:{"visitor":1}}
-    const answer = await client.db("user").collection("host").findOne({_id: o_id_host},option)
-    console.log (answer.visitor)
-    return answer.visitor
-}
-
-async function retrieve_pass (retrieve_num){
-
-    var mongo = require ("mongodb")
-    const o_id_visitor = new mongo.ObjectId(id)
-    const o_id_host = new mongo.ObjectId(retrieve_num)
-
-    if(!(await client.db("user").collection("host").findOne({_id: o_id_host})))
-        return "Invalid host id number"
-
-    let visitor_data = await client.db("user").collection("visitor").findOne({_id : o_id_visitor})
-    let host_data = await client.db("user").collection("host").findOne({_id : o_id_host})
-
-    if(!(await client.db("user").collection("host").findOne({_id: o_id_host, "visitor._id": o_id_visitor,"visitor.name": visitor_data.username}))){
-        return "host does not issue pass to " + visitor_data.username 
-    }
-            
-    await client.db("user").collection("host").updateOne({
-        _id: o_id_host
-    },{$pull:{visitor:{name:visitor_data.username},visitor:{_id: o_id_visitor}}},{upsert:true})
-
-    
-    await client.db("user").collection("visitor").updateOne({
-        _id: o_id_visitor
-    },{$pull:{host:{name:host_data.username,_id: o_id_host}}},{upsert:true})
-
-    console.log("Visitor",visitor_data.username,"is successfully remove")
-    return "Visitor "+visitor_data.username+" is successfully retrieve the pass"
-
-}
-
-async function host_list (){
-    var mongo = require ("mongodb")
-    const o_id_visitor = new mongo.ObjectId(id)
-    const option={projection:{"host":1}}
-    const answer = await client.db("user").collection("visitor").findOne({_id: o_id_visitor},option)
-    console.log (answer.host)
-    return answer.host
-}
+//admin function
 
 async function login_admin(Username,Password,Secret){
 
@@ -450,6 +468,68 @@ async function view_database (){
     return result_visitor.concat(result_host)
 }
 
+async function toHostRole(ID){
+    var mongo = require ("mongodb")
+    const secure_id = new mongo.ObjectId(ID)
+
+    const result = await client.db("user").collection("security").findOne({_id:secure_id})
+
+    if (!result)
+        return "security not found"
+
+    if(await client.db("user").collection("host").findOne({ic: result.ic, username: result.username, password: result.password, email: result.email, contact_number: result.contact_number, unit_number: result.unit_number})){
+        return "security is already a host"
+    }
+
+    await client.db("user").collection("host").insertOne({
+        "ic":result.ic,
+        "username": result.username,
+        "password": result.password,
+        "email": result.email,
+        "contact_number": result.contact_number,
+        "unit_number": result.unit_number,
+        "role": "host"
+    })
+
+    await client.db("user").collection("security").deleteOne({
+        _id:{$eq:secure_id}
+    })
+
+    return "security " + result.username + " has successfully became host"
+
+}
+
+async function toSecurityRole(ID){
+    var mongo = require ("mongodb")
+    const host_id = new mongo.ObjectId(ID)
+
+    const result = await client.db("user").collection("host").findOne({_id:host_id})
+
+    if (!result)
+        return "host not found"
+
+    if(await client.db("user").collection("security").findOne({ic: result.ic, username: result.username, password: result.password, email: result.email, contact_number: result.contact_number, unit_number: result.unit_number})){
+        return "host is already a security"
+    }
+
+    await client.db("user").collection("security").insertOne({
+        "ic":result.ic,
+        "username": result.username,
+        "password": result.password,
+        "email": result.email,
+        "contact_number": result.contact_number,
+        "unit_number": result.unit_number,
+        "role": "security"
+    })
+
+    await client.db("user").collection("host").deleteOne({
+        _id:{$eq:host_id}
+    })
+
+    return "host " + result.username + " has successfully became security"
+
+}
+
 //HTTP login method
 
 
@@ -469,21 +549,36 @@ app.post('/login',verifyToken, async(req, res) => {   //login
     state = 0
 })
 
-app.post('/login/admin_login',verifyToken, async(req, res) => {   //login
-    if(token_state == 0){
-        let answer = await login_admin(req.body.username,req.body.password, req.body.secret);
-        if (state == 0){
-            res.cookie("sessid", jwt_token, {
-                httpOnly: true,
-            });
+//visitor api
+
+app.post ('/login/visitor/pass', verifyToken, async(req, res) => {
+    if (token_state == 1 ){
+        if (role == "visitor"){
+            if (req.body.host_id.length == 24)
+                res.send(await retrieve_pass (req.body.host_id))
         }
-        res.status(200).send(answer)
-    }
-    else{
-        res.status(200).send("you had logged in as " + role)
-    }
-    state = 0
+        else
+            res.send ("you are not a visitor")
+    }   
+    else
+        res.send ("you have not login yet")
+
 })
+
+app.get ('/login/visitor/display_pass', verifyToken, async(req, res) => {
+    if (token_state == 1 ){
+        if (role == "visitor"){
+            res.send (await host_list ())
+        }
+        else
+            res.send ("you are not a visitor")
+    }   
+    else
+        res.send ("you have not login yet")
+
+})
+
+//host api
 
 app.get('/login/user/display',verifyToken, async(req, res) => {
     if (token_state == 1 )
@@ -533,33 +628,6 @@ app.get ('/login/user/display_issue_users', verifyToken, async(req, res) => {
         res.send ("you have not login yet")
 })
 
-app.post ('/login/visitor/pass', verifyToken, async(req, res) => {
-    if (token_state == 1 ){
-        if (role == "visitor"){
-            if (req.body.host_id.length == 24)
-                res.send(await retrieve_pass (req.body.host_id))
-        }
-        else
-            res.send ("you are not a visitor")
-    }   
-    else
-        res.send ("you have not login yet")
-
-})
-
-app.get ('/login/visitor/display_pass', verifyToken, async(req, res) => {
-    if (token_state == 1 ){
-        if (role == "visitor"){
-            res.send (await host_list ())
-        }
-        else
-            res.send ("you are not a visitor")
-    }   
-    else
-        res.send ("you have not login yet")
-
-})
-
 app.post("/register" , async (req, res) => {  //register visitor
     if (req.body.ic.length != 14)
         res.send ("ic number invalid")
@@ -567,6 +635,7 @@ app.post("/register" , async (req, res) => {  //register visitor
         res.send(await registerUser(req.body.ic, req.body.username, req.body.password, req.body.email, req.body.unit_number, req.body.contact))
 })
 
+//security api
 
 app.post("/login/security/registration_approval" ,verifyToken, async (req, res) => {  //register visitor
     if ((token_state == 1) && (role == "security")) {
@@ -626,11 +695,51 @@ app.post("/login/security/delete_visitor" ,verifyToken, async (req, res) => {  /
         res.send ("You are not a security")
 })
 
+//admin api
+
+app.post('/login/admin_login',verifyToken, async(req, res) => {   //login
+    if(token_state == 0){
+        let answer = await login_admin(req.body.username,req.body.password, req.body.secret);
+        if (state == 0){
+            res.cookie("sessid", jwt_token, {
+                httpOnly: true,
+            });
+        }
+        res.status(200).send(answer)
+    }
+    else{
+        res.status(200).send("you had logged in as " + role)
+    }
+    state = 0
+})
+
 app.get ('/login/admin/access', verifyToken, async(req, res) => {
     if ((token_state == 1) && (role == "admin"))
         res.send(await view_database ())
     else
-        res.send ("you have not login yet")
+        res.send ("you are not admin")
+})
+
+app.post ('/login/admin/change_to_security', verifyToken, async(req, res) => {
+    if ((token_state == 1) && (role == "admin")){
+        if (req.body.host_id.length == 24)
+            res.send(await toSecurityRole(req.body.host_id))
+        else
+            res.send ("Invalid host id")
+    }
+    else
+        res.send ("you are not admin")
+})
+
+app.post ('/login/admin/change_to_host', verifyToken, async(req, res) => {
+    if ((token_state == 1) && (role == "admin")){
+        if (req.body.security_id.length == 24)
+            res.send(await toHostRole(req.body.security_id))
+        else
+            res.send ("Invalid security id")
+    }
+    else
+        res.send ("you are not admin")
 })
 
 app.get('/login/logout', (req, res) => {
