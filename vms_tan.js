@@ -359,7 +359,7 @@ async function host_rejection (regID){
 }
 
 async function pass_display (){
-    const result = await client.db("user").collection("host").find ({}).toArray (function(err, result){
+    const result = await client.db("user").collection("waiting").find ({}).toArray (function(err, result){
         if (err) throw err;
     })
     console.log (result)
@@ -379,7 +379,8 @@ async function pass_verification (ref_num){
     await client.db("user").collection("waiting").deleteOne({
         _id:{$eq:ref}
     })
-    return "visitor pass is verified\n" + result
+
+    return "visitor pass is verified\n" +result.visitor_name +"\n"+ result.host_name +"\n"+ result.host_unit_number +"\n"+ result.host_contact_number
 
 }
 
@@ -498,8 +499,13 @@ async function view_database (){
         if (err) throw err;
     })
 
+    const result_security = await client.db("user").collection("security").find ({}).toArray (function(err, result){
+        if (err) throw err;
+    })
+
     console.log (result_visitor.concat(result_host))
-    return result_visitor.concat(result_host)
+    const result = result_visitor.concat(result_host)
+    return result.concat(result_security)
 }
 
 async function toHostRole(ID){
@@ -590,6 +596,8 @@ app.post ('/login/visitor/pass', verifyToken, async(req, res) => {
         if (role == "visitor"){
             if (req.body.host_id.length == 24)
                 res.send(await retrieve_pass (req.body.host_id))
+            else
+                res.send("invalid host id")
         }
         else
             res.send ("you are not a visitor")
@@ -716,7 +724,7 @@ app.post("/login/security/verify_pass" ,verifyToken, async (req, res) => {  //re
         if (req.body.reference_id.length == 24)
             res.send(await pass_verification(req.body.reference_id))
         else
-            res.send ("Invalid host id")
+            res.send ("Invalid reference id")
     }
     else
         res.send ("You are not a security")

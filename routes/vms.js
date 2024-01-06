@@ -365,6 +365,7 @@
 *          responses:
 *              200:
 *                  description: visitor pass verified successfully/ unsuccessfully
+*/
 
 /**
  * @swagger
